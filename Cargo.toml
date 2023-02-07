@@ -1,0 +1,43 @@
+[package]
+name = "keyboard-backlightd"
+version = "0.1.0"
+authors = ["Arvid Norlander"]
+edition = "2021"
+license = "GPL-3.0-only"
+description = "Keyboard backlight timeout daemon for laptops"
+repository = "https://github.com/VorpalBlade/keyboard-backlightd"
+keywords = ["keyboard", "backlight", "laptop", "thinkpad"]
+categories = ["command-line-utilities", "hardware-support"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.release]
+panic = "abort"
+split-debuginfo = "packed"
+strip = "debuginfo"
+opt-level = "z"
+lto = true
+
+[package.metadata.docs.rs]
+default-target = "x86_64-unknown-linux-gnu"
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "x86_64-unknown-linux-musl",
+    "i686-unknown-linux-gnu",
+    "i686-unknown-linux-musl",
+]
+
+[dependencies]
+env_logger = { version = "0.10.0", default-features = false }
+evdev-rs = "0.6.1"
+log = "0.4.17"
+nix = { git = 'https://github.com/nix-rust/nix', branch = "master", default-features = false, features = [
+    "event",
+    "inotify",
+] }
+smallvec = { version = "1.10.0", features = [
+    "const_generics",
+    "const_new",
+    "union",
+] }
+xflags = "0.3.1"
