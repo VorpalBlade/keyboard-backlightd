@@ -75,14 +75,26 @@ pub(crate) fn monitor(
     }
 
     let mut timeout = Some(Duration::ZERO);
-    loop {
+    'main_loop: loop {
         let mut events = [EpollEvent::empty(); 32];
         let now = Instant::now();
         // TODO: Fixed timeout is wrong.
-        epoll.wait(
+        match epoll.wait(
             &mut events,
             timeout.map(|x| x.as_millis() as isize).unwrap_or(-1isize),
-        )?;
+        ) {
+            Ok(_) => (),
+            Err(Errno::EINTR) => {
+                // Retry.
+                if let Some(t) = timeout {
+                    timeout = Some(t - now.elapsed());
+                }
+                continue 'main_loop;
+            }
+            Err(err) => {
+                return Err(Box::new(err));
+            }
+        }
         let duration = now.elapsed();
         // Process events
         for ref event in events {

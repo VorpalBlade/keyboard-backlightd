@@ -1,0 +1,49 @@
+[Unit]
+Description=Start keyboard backlight daemon
+Before=graphical.target
+
+[Service]
+Type=exec
+EnvironmentFile={PREFIX}/etc/conf.d/keyboard-backlightd
+ExecStart={BINDIR}/keyboard-backlightd $INPUTS -l $LED -b $BRIGHTNESS -t $TIMEOUT
+
+# Sandboxing
+PrivateUsers=true
+CapabilityBoundingSet=
+LockPersonality=true
+MemoryDenyWriteExecute=true
+NoNewPrivileges=true
+PrivateIPC=true
+PrivateMounts=true
+PrivateNetwork=true
+PrivateTmp=true
+ProcSubset=pid
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectProc=noaccess
+ProtectSystem=strict
+RestrictAddressFamilies=none
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+SystemCallArchitectures=native
+
+# We need to run as root since the LED has group root
+# We can't use ProtectKernelTunables either, as ReadWritePaths doesn't seem
+# to allow overriding that.
+
+# Allow what we need
+ReadWritePaths=/sys/class/leds
+DeviceAllow=char-input
+DevicePolicy=closed
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

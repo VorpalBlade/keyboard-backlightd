@@ -1,3 +1,4 @@
 .gdb_history
 *.code-workspace
+/etc/keyboard-backlightd.service
 /target
