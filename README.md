@@ -13,6 +13,7 @@ Limitations:
 
 * Only tested on modern ThinkPads.
 * Very little auto-detection, you will need to configure your input devices
+* Linux only. Uses some *very* low level APIs.
 
 ## Warning!
 
@@ -63,7 +64,8 @@ Select the device event number [0-19]:
 ```
 
 This lets you identify the input devices Linux sees. However, this is not
-quite what you want, as the numbering is not stable across reboots.
+quite what you want, as the numbering is not guaranteed to be stable across
+reboots.
 
 Next you need to find a stable ID for these:
 
@@ -101,6 +103,11 @@ From the output above we can conclude that we want:
 | Touchscreen     | Raydium Corporation Raydium Touch System |      8 | `/dev/input/by-id/usb-Raydium_Corporation_Raydium_Touch_System-event-if00` |
 
 These are (for this laptop, a ThinkPad T480) all the inputs we want to monitor.
+
+Here are some hints for figuring this out:
+
+* The two most common vendors I have seen for touchpads are Synaptics and ALPS.
+* You can always use evtest to check if key presses go to a specific device.
 
 Thus, our command line for `keyboard-backlightd` would look like:
 
