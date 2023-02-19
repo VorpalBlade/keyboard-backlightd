@@ -7,13 +7,36 @@ Features:
 * Small, minimal dependencies, fast to compile.
 * Supports adjusting the keyboard backlight using the normal key (by
   monitoring if brightness was changed by hardware and adjusting accordingly).
-* Supports "keep it locked for x-minutes" temporary mode.
 
 Limitations:
 
 * Only tested on modern ThinkPads.
 * Very little auto-detection, you will need to configure your input devices
 * Linux only. Uses some *very* low level APIs.
+
+## Installation
+
+While this package can be built with `cargo` as most rust packages, it uses
+`make` for installation. This is because `cargo` is not able to install the
+additional files that are needed: The config file and the systemd unit file.
+
+Why is this needed? Since this is a system daemon it needs to be installed
+system-wide and run as root (to be able to access certain files in `/dev`
+and `/sys`).
+
+Thus you should ideally install this with your distro package manager. A
+package for Arch Linux is available on [AUR](https://aur.archlinux.org/packages/keyboard-backlightd)
+(maintained by the author of this package).
+
+If you do not use Arch Linux, I would appreciate if you can contribute
+creating a package! However, if you do not want to create a package, do
+something like this to install into `/usr/local`:
+
+```console
+# NOTE! Not recommended!
+$ make
+$ sudo make install
+```
 
 ## Warning!
 

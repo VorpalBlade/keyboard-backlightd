@@ -8,6 +8,7 @@ description = "Keyboard backlight timeout daemon for laptops"
 repository = "https://github.com/VorpalBlade/keyboard-backlightd"
 keywords = ["keyboard", "backlight", "laptop", "thinkpad"]
 categories = ["command-line-utilities", "hardware-support"]
+exclude = ["/pkgs"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
