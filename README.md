@@ -18,11 +18,16 @@ Limitations:
 ## Warning!
 
 This program will monitor your key presses, but only to detect when you press
-the keys. It does not care about what you press. But the Linux API it uses does
-provide that. Thus, it works very similar to a keylogger. Read the code first to
-make sure you trust me with this!
+the keys. It does however not care about *what* you press. The only thing the
+code checks is if it is a LED changing state, in which case it is ignored
+(otherwise, pressing Caps Lock on an external keyboard would light up the
+keyboard backlight).
 
-The code that does this is in `handlers.rs` in the `mod ev_dev` section.
+In summary: This code works very similar to how a keylogger would, except that
+it is benign. But you should read the code first to make sure you trust me with
+this! (This is a good idea in general!)
+
+The code that does this is in [`handlers.rs`](src/handlers.rs) in the `mod ev_dev` section.
 
 ## Figuring out input devices & LEDs
 

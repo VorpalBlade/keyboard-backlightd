@@ -87,7 +87,7 @@ dependencies = [
 [[package]]
 name = "nix"
 version = "0.26.1"
-source = "git+https://github.com/nix-rust/nix?branch=master#1a838c7e54e6b908cc96db1c4a89dc87e8958f72"
+source = "git+https://github.com/nix-rust/nix?branch=master#b2318f98d31ff96bcd8f85910766a48638c16622"
 dependencies = [
  "bitflags",
  "cfg-if",

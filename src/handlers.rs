@@ -32,7 +32,10 @@ mod ev_dev {
         time::{Duration, Instant},
     };
 
-    use evdev_rs::{Device, ReadFlag};
+    use evdev_rs::{
+        enums::{EventCode, EV_SYN},
+        Device, ReadFlag,
+    };
     use log::warn;
 
     use crate::state::State;
@@ -61,16 +64,29 @@ mod ev_dev {
         fn process(&mut self, state: &mut State, _dur: &Duration) -> Result<(), Box<dyn Error>> {
             let ev = self.dev.next_event(ReadFlag::NORMAL).map(|val| val.1);
             match ev {
-                // This case is that an input event was reported, we don't care *which* one,
-                // just that one happened and when.
-                Ok(_) => {
-                    // The time in the event is not monotonic, thus we need
-                    // to get the time right now instead.
-                    state.last_input = Instant::now();
+                // This case is that an input event was reported.
+                Ok(key) => {
+                    match key.event_code {
+                        // If it was was a LED: Ignore it! (Otherwise pressing
+                        // Caps Lock on an external USB keyboard would trigger
+                        // us to turn on the backlight on the built in keyboard.
+                        EventCode::EV_LED(_) => Ok(()),
+                        // Similarly ignore SYN_REPORT, as these happen after
+                        // each EV_LED (and in many other places too).
+                        EventCode::EV_SYN(EV_SYN::SYN_REPORT) => Ok(()),
+                        _ => {
+                            // The time in the event is not monotonic, thus we need
+                            // to get the time right now instead.
+                            state.last_input = Instant::now();
+                            Ok(())
+                        }
+                    }
                 }
-                Err(e) => warn!("Error reading {:?}: {}", self.dev.file(), e),
+                Err(e) => {
+                    warn!("Error reading {:?}: {}", self.dev.file(), e);
+                    Ok(())
+                }
             }
-            Ok(())
         }
     }
 }
