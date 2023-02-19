@@ -7,7 +7,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use log::info;
+use log::debug;
 use smallvec::{smallvec, SmallVec};
 
 use crate::{flags::KeyboardBacklightd, led::Led, state::State};
@@ -27,8 +27,8 @@ pub(crate) fn run_policy(
 
     let actions = policy(state, config);
 
-    info!("State: {state:?}");
-    info!("Actions: {actions:?}");
+    debug!("State: {state:?}");
+    debug!("Actions: {actions:?}");
 
     for action in actions {
         match action {
