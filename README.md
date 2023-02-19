@@ -1,5 +1,7 @@
 # `keyboard-backlightd`
 
+[ [crates.io] ] [ [lib.rs] ] [ [AUR] ]
+
 A daemon to turn off the keyboard backlight when idle.
 
 Features:
@@ -25,8 +27,8 @@ system-wide and run as root (to be able to access certain files in `/dev`
 and `/sys`).
 
 Thus you should ideally install this with your distro package manager. A
-package for Arch Linux is available on [AUR](https://aur.archlinux.org/packages/keyboard-backlightd)
-(maintained by the author of this package).
+package for Arch Linux is available on [AUR] (maintained by the author of
+this package).
 
 If you do not use Arch Linux, I would appreciate if you can contribute
 creating a package! However, if you do not want to create a package, do
@@ -174,3 +176,7 @@ So in summary: There is no MSRV policy.
 ## License
 
 `keyboard-backlightd` is released under GPL 3.0 (only, not "or later").
+
+[AUR]: https://aur.archlinux.org/packages/keyboard-backlightd
+[crates.io]: https://crates.io/crates/keyboard-backlightd
+[lib.rs]: https://lib.rs/crates/keyboard-backlightd
