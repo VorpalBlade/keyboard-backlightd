@@ -19,7 +19,7 @@ $(PROG):
 	cargo build --release $(CARGO_FLAGS)
 
 etc/keyboard-backlightd.service: etc/keyboard-backlightd.service.in Makefile
-	sed -e "s#{BINDIR}#$(BINDIR)#" -e "s#{PREFIX}#$(PREFIX)#" $< > $@
+	sed -e "s#{BINDIR}#$(BINDIR)#" -e "s#{CONFDIR}#$(CONFDIR)#" $< > $@
 
 install: etc/keyboard-backlightd.service
 	install -d $(DESTDIR)$(BINDIR) $(DESTDIR)$(SYSTEMDDIR) $(DESTDIR)$(CONFDIR)

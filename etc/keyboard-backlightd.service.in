@@ -4,7 +4,7 @@ Before=graphical.target
 
 [Service]
 Type=exec
-EnvironmentFile={PREFIX}/etc/conf.d/keyboard-backlightd
+EnvironmentFile={CONFDIR}/keyboard-backlightd
 ExecStart={BINDIR}/keyboard-backlightd $INPUTS -l $LED -b $BRIGHTNESS -t $TIMEOUT
 
 # Sandboxing
