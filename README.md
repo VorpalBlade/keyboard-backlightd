@@ -33,7 +33,9 @@ creating a package! However, if you do not want to create a package, do
 something like this to install into `/usr/local`:
 
 ```console
-# NOTE! Not recommended!
+# NOTE! Not recommended! This will overwrite your config file for this
+# program, which sucks if you customised it. Use your package manager
+# instead!
 $ make
 $ sudo make install
 ```
