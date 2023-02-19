@@ -4,50 +4,42 @@ use std::{
     cell::RefCell,
     collections::HashMap,
     error::Error,
-    os::fd::{BorrowedFd, FromRawFd},
+    os::fd::{AsRawFd, BorrowedFd},
     rc::Rc,
     time::{Duration, Instant},
 };
 
 use nix::{
     errno::Errno,
-    libc,
     sys::{
-        epoll::{Epoll, EpollCreateFlags, EpollEvent, EpollFlags},
+        epoll::{EpollCreateFlags, EpollFlags},
         inotify::{AddWatchFlags, InitFlags, Inotify},
     },
 };
 
 use crate::{
-    flags::KeyboardBacklightd, handlers::Handler, led::Led, policy::run_policy, state::State,
+    flags::KeyboardBacklightd,
+    handlers::Handler,
+    led::Led,
+    nix_polyfill::{Epoll, EpollEvent},
+    policy::run_policy,
+    state::State,
 };
 
-// The API of nix sucks badly here. There is no way to get the FD out of inotify and into epoll
-// We have to stupidly resort to unsafe code.
-//
-// This is based on Inotify::init
-//
-// SAFETY: Well, it actully isn't unsafe, since we aren't doing silly things like mmaping
-//         this etc. It won't lead to memory safety.
-//         HOWEVER: The IO safety is wrong, we are creating two copies of the same FD.
-//         This can only be fixed in nix itself. But the way we use it is okay.
-unsafe fn create_inotify<'a>(
-    flags: InitFlags,
-) -> Result<(Inotify, BorrowedFd<'a>), Box<dyn Error>> {
-    let fd = Errno::result(unsafe { libc::inotify_init1(flags.bits()) })?;
-    Ok(unsafe { (Inotify::from_raw_fd(fd), BorrowedFd::borrow_raw(fd)) })
-}
-
+/// Marker value in epoll for the inotify watch.
 const INOTIFY_HANDLE: u64 = u64::MAX;
 
+/// Main loop that monitors all the different data sources.
 pub(crate) fn monitor(
     mut listeners: Vec<Box<dyn Handler>>,
     mut state: State,
     led: Rc<RefCell<Led>>,
     config: &KeyboardBacklightd,
 ) -> Result<(), Box<dyn Error>> {
-    // SAFETY: Epoll and inotify lives equally long. This is safe.
-    let (inotify, ifd) = unsafe { create_inotify(InitFlags::IN_CLOEXEC | InitFlags::IN_NONBLOCK)? };
+    let inotify = Inotify::init(InitFlags::IN_CLOEXEC | InitFlags::IN_NONBLOCK)?;
+    // SAFETY: Epoll and inotify lives equally long. Also this cannot create a memory error anyway.
+    //         This is safe.
+    let ifd = unsafe { BorrowedFd::borrow_raw(inotify.as_raw_fd()) };
     let epoll = Epoll::new(EpollCreateFlags::EPOLL_CLOEXEC)?;
 
     epoll.add(

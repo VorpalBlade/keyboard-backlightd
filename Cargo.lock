@@ -37,7 +37,7 @@ checksum = "9812d5790fb6fcce449333eb6713dad335e8c979225ed98755c84a3987e06dba"
 dependencies = [
  "bitflags",
  "evdev-sys",
- "libc 0.2.139 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc",
  "log",
 ]
 
@@ -48,7 +48,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14ead42b547b15d47089c1243d907bcf0eb94e457046d3b315a26ac9c9e9ea6d"
 dependencies = [
  "cc",
- "libc 0.2.139 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc",
  "pkg-config",
 ]
 
@@ -71,11 +71,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "201de327520df007757c1f0adce6e827fe8562fbc28bfd9c15571c66ca1f5f79"
 
 [[package]]
-name = "libc"
-version = "0.2.139"
-source = "git+https://github.com/rust-lang/libc?rev=44cc30c6b68427d3628926868758d35fe561bbe6#44cc30c6b68427d3628926868758d35fe561bbe6"
-
-[[package]]
 name = "log"
 version = "0.4.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -86,12 +81,13 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.26.1"
-source = "git+https://github.com/nix-rust/nix?branch=master#b2318f98d31ff96bcd8f85910766a48638c16622"
+version = "0.26.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfdda3d196821d6af13126e40375cdf7da646a96114af134d5f417a9a1dc8e1a"
 dependencies = [
  "bitflags",
  "cfg-if",
- "libc 0.2.139 (git+https://github.com/rust-lang/libc?rev=44cc30c6b68427d3628926868758d35fe561bbe6)",
+ "libc",
  "static_assertions",
 ]
 

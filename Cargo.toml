@@ -31,7 +31,7 @@ targets = [
 env_logger = { version = "0.10.0", default-features = false }
 evdev-rs = "0.6.1"
 log = "0.4.17"
-nix = { git = 'https://github.com/nix-rust/nix', branch = "master", default-features = false, features = [
+nix = { version = "0.26.2", default-features = false, features = [
     "event",
     "inotify",
 ] }
