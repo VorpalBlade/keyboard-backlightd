@@ -1,6 +1,8 @@
 [Unit]
 Description=Start keyboard backlight daemon
+After=systemd-udevd.service
 Before=graphical.target
+Requires=systemd-udevd.service
 
 [Service]
 Type=exec
