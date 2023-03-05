@@ -3,6 +3,10 @@
 //! There is no public code API for you to use! However, the command line
 //! interface should be stable.
 
+#![feature(error_generic_member_access)]
+#![feature(provide_any)]
+
+mod errors;
 mod flags;
 mod handlers;
 mod led;
@@ -11,15 +15,17 @@ mod nix_polyfill;
 mod policy;
 mod state;
 
-use std::{cell::RefCell, error::Error, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
+use errors::KBError;
 use handlers::{EvDevListener, Handler, HwChangeListener};
 use monitor::monitor;
 use state::State;
 
 use crate::led::Led;
 
-fn main() -> Result<(), Box<dyn Error>> {
+#[snafu::report]
+fn main() -> Result<(), KBError> {
     env_logger::init();
 
     match flags::KeyboardBacklightd::from_env() {
@@ -33,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 /// Set up to start daemon
-fn setup_daemon(config: &flags::KeyboardBacklightd) -> Result<(), Box<dyn Error>> {
+fn setup_daemon(config: &flags::KeyboardBacklightd) -> Result<(), KBError> {
     let mut listeners: Vec<Box<dyn Handler>> = vec![];
     let mut state = State::new();
 

@@ -12,10 +12,13 @@ exclude = ["/pkgs"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[profile.dev]
+panic = "abort"
+
 [profile.release]
 panic = "abort"
-split-debuginfo = "packed"
-strip = "debuginfo"
+#split-debuginfo = "packed"
+#strip = "debuginfo"
 opt-level = "z"
 lto = true
 
@@ -41,4 +44,5 @@ smallvec = { version = "1.10.0", features = [
     "const_new",
     "union",
 ] }
+snafu = { version = "0.7.4", features = ["backtraces", "rust_1_61", "backtraces-impl-std", "unstable-provider-api"] }
 xflags = "0.3.1"

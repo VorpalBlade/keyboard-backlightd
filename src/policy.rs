@@ -2,7 +2,6 @@
 
 use std::{
     cell::RefCell,
-    error::Error,
     rc::Rc,
     time::{Duration, Instant},
 };
@@ -10,7 +9,7 @@ use std::{
 use log::debug;
 use smallvec::{smallvec, SmallVec};
 
-use crate::{flags::KeyboardBacklightd, led::Led, state::State};
+use crate::{errors::KBError, flags::KeyboardBacklightd, led::Led, state::State};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum PolicyAction {
@@ -22,7 +21,7 @@ pub(crate) fn run_policy(
     state: &mut State,
     config: &KeyboardBacklightd,
     led: &Rc<RefCell<Led>>,
-) -> Result<Option<Duration>, Box<dyn Error>> {
+) -> Result<Option<Duration>, KBError> {
     state.cur_brightness = led.borrow().brightness()?;
 
     let actions = policy(state, config);
