@@ -3,7 +3,6 @@
 use std::{
     cell::RefCell,
     collections::HashMap,
-    error::Error,
     os::fd::{AsRawFd, BorrowedFd},
     rc::Rc,
     time::{Duration, Instant},
@@ -16,8 +15,10 @@ use nix::{
         inotify::{AddWatchFlags, InitFlags, Inotify},
     },
 };
+use snafu::{prelude::*, GenerateImplicitData};
 
 use crate::{
+    errors::{self, KBError},
     flags::KeyboardBacklightd,
     handlers::Handler,
     led::Led,
@@ -35,17 +36,20 @@ pub(crate) fn monitor(
     mut state: State,
     led: Rc<RefCell<Led>>,
     config: &KeyboardBacklightd,
-) -> Result<(), Box<dyn Error>> {
-    let inotify = Inotify::init(InitFlags::IN_CLOEXEC | InitFlags::IN_NONBLOCK)?;
+) -> Result<(), KBError> {
+    let inotify = Inotify::init(InitFlags::IN_CLOEXEC | InitFlags::IN_NONBLOCK)
+        .context(errors::InotifySnafu)?;
     // SAFETY: Epoll and inotify lives equally long. Also this cannot create a memory error anyway.
     //         This is safe.
     let ifd = unsafe { BorrowedFd::borrow_raw(inotify.as_raw_fd()) };
-    let epoll = Epoll::new(EpollCreateFlags::EPOLL_CLOEXEC)?;
+    let epoll = Epoll::new(EpollCreateFlags::EPOLL_CLOEXEC).context(errors::EpollSnafu)?;
 
-    epoll.add(
-        ifd,
-        EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, INOTIFY_HANDLE),
-    )?;
+    epoll
+        .add(
+            ifd,
+            EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, INOTIFY_HANDLE),
+        )
+        .context(errors::EpollSnafu)?;
 
     let mut inotify_map = HashMap::new();
 
@@ -55,13 +59,23 @@ pub(crate) fn monitor(
             crate::handlers::ListenType::Fd(ref fd) => {
                 // TRICKY BIT: Data = 0 is used to indicate nothing happend.
                 // We thus offset the array index into listeners by one.
-                epoll.add(
-                    fd,
-                    EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, (idx + 1) as u64),
-                )?;
+                epoll
+                    .add(
+                        fd,
+                        EpollEvent::new(
+                            EpollFlags::EPOLLIN | EpollFlags::EPOLLERR,
+                            (idx + 1) as u64,
+                        ),
+                    )
+                    .context(errors::EpollSnafu)?;
             }
             crate::handlers::ListenType::Path(p) => {
-                inotify_map.insert(inotify.add_watch(p, AddWatchFlags::IN_MODIFY)?, idx);
+                inotify_map.insert(
+                    inotify
+                        .add_watch(p, AddWatchFlags::IN_MODIFY)
+                        .context(errors::InotifySnafu)?,
+                    idx,
+                );
             }
         }
     }
@@ -83,8 +97,11 @@ pub(crate) fn monitor(
                 }
                 continue 'main_loop;
             }
-            Err(err) => {
-                return Err(Box::new(err));
+            Err(errno) => {
+                return Err(errors::KBError::Epoll {
+                    source: errno,
+                    backtrace: snafu::Backtrace::generate(),
+                });
             }
         }
         let duration = now.elapsed();
@@ -92,7 +109,7 @@ pub(crate) fn monitor(
         for ref event in events {
             match event.data() {
                 INOTIFY_HANDLE => {
-                    for ievent in inotify.read_events()? {
+                    for ievent in inotify.read_events().context(errors::InotifySnafu)? {
                         let idx = inotify_map.get(&ievent.wd).unwrap();
                         let l = listeners.get_mut(*idx).unwrap();
                         l.process(&mut state, &duration)?;

@@ -16,8 +16,8 @@ version = "0.1.3"
 lto = true
 opt-level = "z"
 panic = "abort"
-split-debuginfo = "packed"
-strip = "debuginfo"
+#split-debuginfo = "packed"
+#strip = "debuginfo"
 
 [package.metadata.docs.rs]
 default-target = "x86_64-unknown-linux-gnu"
@@ -40,5 +40,11 @@ smallvec = { version = "1.10.0", features = [
     "const_generics",
     "const_new",
     "union",
+] }
+snafu = { version = "0.7.4", features = [
+    "backtraces",
+    "rust_1_61",
+    "backtraces-impl-std",
+    "unstable-provider-api",
 ] }
 xflags = "0.3.1"
