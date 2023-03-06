@@ -79,7 +79,7 @@ pub(crate) fn monitor(
             Err(Errno::EINTR) => {
                 // Retry.
                 if let Some(t) = timeout {
-                    timeout = Some(t - now.elapsed());
+                    timeout = Some(t.saturating_sub(now.elapsed()));
                 }
                 continue 'main_loop;
             }
