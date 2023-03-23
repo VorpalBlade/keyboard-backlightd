@@ -14,6 +14,10 @@ xflags::xflags! {
         optional -b, --brightness value: u8
         /// Enable extra verbosity!
         optional -v, --verbose
+        /// Timeout during startup for device nodes to appear.
+        ///
+        /// This can help with late loaded kernel modules.
+        optional -w, --wait timeout: u32
     }
 }
 

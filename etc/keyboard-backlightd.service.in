@@ -7,7 +7,7 @@ Requires=systemd-udevd.service
 [Service]
 Type=exec
 EnvironmentFile={CONFDIR}/keyboard-backlightd
-ExecStart={BINDIR}/keyboard-backlightd $INPUTS -l $LED -b $BRIGHTNESS -t $TIMEOUT
+ExecStart={BINDIR}/keyboard-backlightd $INPUTS -l $LED -b $BRIGHTNESS -t $TIMEOUT -w $WAIT
 
 # Sandboxing
 PrivateUsers=true

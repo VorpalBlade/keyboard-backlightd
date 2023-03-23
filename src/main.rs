@@ -10,14 +10,15 @@ mod monitor;
 mod nix_polyfill;
 mod policy;
 mod state;
+mod utils;
 
-use std::{cell::RefCell, error::Error, rc::Rc};
+use std::{cell::RefCell, error::Error, rc::Rc, time::Duration};
 
 use handlers::{EvDevListener, Handler, HwChangeListener};
 use monitor::monitor;
 use state::State;
 
-use crate::led::Led;
+use crate::{led::Led, utils::wait_for_file};
 
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
@@ -44,7 +45,13 @@ fn setup_daemon(config: &flags::KeyboardBacklightd) -> Result<(), Box<dyn Error>
     }
 
     for e in &config.monitor_input {
+        if let Some(timeout) = config.wait {
+            wait_for_file(e.as_path(), Duration::from_millis(timeout.into()))?;
+        }
         listeners.push(Box::new(EvDevListener::new(e)?));
+    }
+    if let Some(timeout) = config.wait {
+        wait_for_file(config.led.as_path(), Duration::from_millis(timeout.into()))?;
     }
     let led = Rc::new(RefCell::new(Led::new(config.led.clone())));
     if let Some(uefi_path) = led.borrow().monitor_path()? {
