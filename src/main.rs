@@ -14,6 +14,7 @@ mod utils;
 
 use std::{cell::RefCell, rc::Rc, time::Duration};
 
+use anyhow::Context;
 use handlers::{EvDevListener, Handler, HwChangeListener};
 use monitor::monitor;
 use state::State;
@@ -53,9 +54,11 @@ fn setup_daemon(config: &flags::KeyboardBacklightd) -> anyhow::Result<()> {
     if let Some(timeout) = config.wait {
         wait_for_file(config.led.as_path(), Duration::from_millis(timeout.into()))?;
     }
-    let led = Rc::new(RefCell::new(Led::new(config.led.clone())));
-    if let Some(uefi_path) = led.borrow().monitor_path()? {
-        listeners.push(Box::new(HwChangeListener::new(uefi_path, led.clone())));
+    let led = Rc::new(RefCell::new(
+        Led::new(config.led.clone()).context("Failed to create LED")?,
+    ));
+    if let Some(hw_path) = led.borrow().monitor_path() {
+        listeners.push(Box::new(HwChangeListener::new(hw_path.into(), led.clone())));
     }
 
     monitor(listeners, state, led, config)?;

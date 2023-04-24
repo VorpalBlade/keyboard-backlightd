@@ -123,7 +123,7 @@ mod hw_change {
 
         fn process(&mut self, state: &mut State, _dur: &Duration) -> anyhow::Result<()> {
             state.last_input = Instant::now();
-            state.requested_brightness = self.led.borrow().brightness()?;
+            state.requested_brightness = self.led.borrow_mut().brightness()?;
             Ok(())
         }
     }

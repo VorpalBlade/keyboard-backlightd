@@ -22,7 +22,7 @@ pub(crate) fn run_policy(
     config: &KeyboardBacklightd,
     led: &Rc<RefCell<Led>>,
 ) -> anyhow::Result<Option<Duration>> {
-    state.cur_brightness = led.borrow().brightness()?;
+    state.cur_brightness = led.borrow_mut().brightness()?;
 
     let actions = policy(state, config);
 
@@ -32,7 +32,7 @@ pub(crate) fn run_policy(
     for action in actions {
         match action {
             PolicyAction::SetLed(brightness) => {
-                led.borrow_mut().set_brightness(brightness)?;
+                led.borrow_mut().set_brightness(brightness, state)?;
             }
             PolicyAction::Sleep(dur) => return Ok(dur),
         }
