@@ -1,6 +1,6 @@
 //! Handlers for activity on paths
 
-use std::{error::Error, os::fd::BorrowedFd, path::Path, time::Duration};
+use std::{os::fd::BorrowedFd, path::Path, time::Duration};
 
 use crate::state::State;
 
@@ -17,7 +17,7 @@ pub(crate) trait Handler {
     /// List of FDs that needs to be monitored for this listener
     fn monitored(&self) -> ListenType;
     /// Called on change of the monitored thing
-    fn process(&mut self, state: &mut State, dur: &Duration) -> Result<(), Box<dyn Error>>;
+    fn process(&mut self, state: &mut State, dur: &Duration) -> anyhow::Result<()>;
 }
 
 pub(crate) use ev_dev::EvDevListener;
@@ -26,7 +26,6 @@ pub(crate) use hw_change::HwChangeListener;
 /// Code for handling /dev/input
 mod ev_dev {
     use std::{
-        error::Error,
         os::fd::AsFd,
         path::Path,
         time::{Duration, Instant},
@@ -49,7 +48,7 @@ mod ev_dev {
     }
 
     impl EvDevListener {
-        pub fn new(path: &Path) -> Result<Self, Box<dyn Error>> {
+        pub fn new(path: &Path) -> anyhow::Result<Self> {
             Ok(Self {
                 dev: Device::new_from_path(path)?,
             })
@@ -61,7 +60,7 @@ mod ev_dev {
             ListenType::Fd(self.dev.file().as_fd())
         }
 
-        fn process(&mut self, state: &mut State, _dur: &Duration) -> Result<(), Box<dyn Error>> {
+        fn process(&mut self, state: &mut State, _dur: &Duration) -> anyhow::Result<()> {
             let ev = self.dev.next_event(ReadFlag::NORMAL).map(|val| val.1);
             match ev {
                 // This case is that an input event was reported.
@@ -95,7 +94,6 @@ mod ev_dev {
 mod hw_change {
     use std::{
         cell::RefCell,
-        error::Error,
         path::PathBuf,
         rc::Rc,
         time::{Duration, Instant},
@@ -123,7 +121,7 @@ mod hw_change {
             ListenType::Path(self.path.as_path())
         }
 
-        fn process(&mut self, state: &mut State, _dur: &Duration) -> Result<(), Box<dyn Error>> {
+        fn process(&mut self, state: &mut State, _dur: &Duration) -> anyhow::Result<()> {
             state.last_input = Instant::now();
             state.requested_brightness = self.led.borrow().brightness()?;
             Ok(())

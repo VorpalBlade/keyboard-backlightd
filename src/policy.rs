@@ -2,7 +2,6 @@
 
 use std::{
     cell::RefCell,
-    error::Error,
     rc::Rc,
     time::{Duration, Instant},
 };
@@ -22,7 +21,7 @@ pub(crate) fn run_policy(
     state: &mut State,
     config: &KeyboardBacklightd,
     led: &Rc<RefCell<Led>>,
-) -> Result<Option<Duration>, Box<dyn Error>> {
+) -> anyhow::Result<Option<Duration>> {
     state.cur_brightness = led.borrow().brightness()?;
 
     let actions = policy(state, config);
@@ -38,7 +37,7 @@ pub(crate) fn run_policy(
             PolicyAction::Sleep(dur) => return Ok(dur),
         }
     }
-    panic!("There should always be a sleep action!");
+    unreachable!("There should always be a sleep action!");
 }
 
 fn policy(state: &mut State, settings: &KeyboardBacklightd) -> SmallVec<[PolicyAction; 2]> {

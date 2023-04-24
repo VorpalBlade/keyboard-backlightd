@@ -12,7 +12,7 @@ mod policy;
 mod state;
 mod utils;
 
-use std::{cell::RefCell, error::Error, rc::Rc, time::Duration};
+use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use handlers::{EvDevListener, Handler, HwChangeListener};
 use monitor::monitor;
@@ -20,7 +20,7 @@ use state::State;
 
 use crate::{led::Led, utils::wait_for_file};
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> anyhow::Result<()> {
     env_logger::init();
 
     match flags::KeyboardBacklightd::from_env() {
@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 /// Set up to start daemon
-fn setup_daemon(config: &flags::KeyboardBacklightd) -> Result<(), Box<dyn Error>> {
+fn setup_daemon(config: &flags::KeyboardBacklightd) -> anyhow::Result<()> {
     let mut listeners: Vec<Box<dyn Handler>> = vec![];
     let mut state = State::new();
 

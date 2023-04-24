@@ -3,7 +3,6 @@
 use std::{
     cell::RefCell,
     collections::HashMap,
-    error::Error,
     os::fd::{AsRawFd, BorrowedFd},
     rc::Rc,
     time::{Duration, Instant},
@@ -35,7 +34,7 @@ pub(crate) fn monitor(
     mut state: State,
     led: Rc<RefCell<Led>>,
     config: &KeyboardBacklightd,
-) -> Result<(), Box<dyn Error>> {
+) -> anyhow::Result<()> {
     let inotify = Inotify::init(InitFlags::IN_CLOEXEC | InitFlags::IN_NONBLOCK)?;
     // SAFETY: Epoll and inotify lives equally long. Also this cannot create a memory error anyway.
     //         This is safe.
@@ -84,7 +83,7 @@ pub(crate) fn monitor(
                 continue 'main_loop;
             }
             Err(err) => {
-                return Err(Box::new(err));
+                return Err(anyhow::anyhow!("Epoll error code: {err}"));
             }
         }
         let duration = now.elapsed();
