@@ -19,7 +19,7 @@ const MAX_BRIGHTNESS: &str = "max_brightness";
 const BRIGHTNESS_HW_CHANGED: &str = "brightness_hw_changed";
 
 /// Helper to read an integer from a path.
-fn read_int(p: &Path) -> anyhow::Result<u8> {
+fn read_int(p: &Path) -> anyhow::Result<u32> {
     let mut f = OpenOptions::new().read(true).open(p)?;
     let mut buf = String::new();
     f.read_to_string(&mut buf)?;
@@ -36,7 +36,7 @@ impl Led {
     }
 
     /// Get the current brightness
-    pub fn brightness(&self) -> anyhow::Result<u8> {
+    pub fn brightness(&self) -> anyhow::Result<u32> {
         let mut p = self.path.clone();
         p.push(BRIGHTNESS);
         read_int(p.as_path())
@@ -44,14 +44,14 @@ impl Led {
 
     /// Get the max brightness supported
     #[allow(unused)]
-    pub fn max_brightness(&self) -> anyhow::Result<u8> {
+    pub fn max_brightness(&self) -> anyhow::Result<u32> {
         let mut p = self.path.clone();
         p.push(MAX_BRIGHTNESS);
         read_int(p.as_path())
     }
 
     /// Set the current brightness
-    pub fn set_brightness(&mut self, brightness: u8) -> anyhow::Result<()> {
+    pub fn set_brightness(&mut self, brightness: u32) -> anyhow::Result<()> {
         let mut p = self.path.clone();
         p.push(BRIGHTNESS);
         let mut f = OpenOptions::new().write(true).open(p)?;

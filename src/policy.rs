@@ -13,7 +13,7 @@ use crate::{flags::KeyboardBacklightd, led::Led, state::State};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum PolicyAction {
-    SetLed(u8),
+    SetLed(u32),
     Sleep(Option<Duration>),
 }
 

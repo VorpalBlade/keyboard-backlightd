@@ -13,9 +13,9 @@ pub(crate) struct State {
     /// Describes the current keep-on/keep-off settings.
     pub keep: Option<KeepCurrent>,
     /// Current brightness
-    pub cur_brightness: u8,
+    pub cur_brightness: u32,
     /// Brightness that we want.
-    pub requested_brightness: u8,
+    pub requested_brightness: u32,
 }
 
 impl State {

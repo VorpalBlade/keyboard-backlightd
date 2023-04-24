@@ -11,7 +11,7 @@ xflags::xflags! {
         /// Timeout in milliseconds before backlight is turned off.
         required -t, --timeout milliseconds: u32
         /// Brightness value to use by default.
-        optional -b, --brightness value: u8
+        optional -b, --brightness value: u32
         /// Enable extra verbosity!
         optional -v, --verbose
         /// Timeout during startup for device nodes to appear.
