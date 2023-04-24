@@ -23,10 +23,9 @@ fn read_int(p: &Path) -> anyhow::Result<u32> {
     let mut f = OpenOptions::new().read(true).open(p)?;
     let mut buf = String::new();
     f.read_to_string(&mut buf)?;
-    Ok(buf
-        .trim_end_matches('\n')
+    buf.trim_end_matches('\n')
         .parse()
-        .with_context(|| format!("Failed to parse integer from {p:?}"))?)
+        .with_context(|| format!("Failed to parse integer from {p:?}"))
 }
 
 impl Led {
