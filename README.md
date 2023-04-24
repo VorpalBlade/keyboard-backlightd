@@ -165,6 +165,22 @@ In this case there was only one option. This means we want:
 -l /sys/class/leds/tpacpi::kbd_backlight
 ```
 
+## Configuration
+
+Once you have found your required command line parameters, edit
+`/etc/conf.d/keyboard-backlightd` to set them for use in the systemd service.
+
+Then enable and start the systemd service and make sure everything still works:
+```console
+$ systemctl enable keyboard-backlightd
+$ systemctl start keyboard-backlightd
+```
+
+If you have issues with the service not starting during boot, consider
+increasing `WAIT` in the configuration file. This might help with late loaded
+kernel modules causing the device node to not be available when the daemon
+starts.
+
 ## Minimum supported rust version (MSRV)
 
 YMMV. It works on rustc 1.67.0 as of writing. It should continue working on
