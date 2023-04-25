@@ -31,11 +31,12 @@ mod ev_dev {
         time::{Duration, Instant},
     };
 
+    use anyhow::Context;
     use evdev_rs::{
         enums::{EventCode, EV_SYN},
         Device, ReadFlag,
     };
-    use log::warn;
+    use log::error;
 
     use crate::state::State;
 
@@ -82,8 +83,8 @@ mod ev_dev {
                     }
                 }
                 Err(e) => {
-                    warn!("Error reading {:?}: {}", self.dev.file(), e);
-                    Ok(())
+                    error!("Error reading {:?}: {}", self.dev.file(), e);
+                    Err(e).with_context(|| format!("Error while reading {:?}", self.dev.file()))
                 }
             }
         }
