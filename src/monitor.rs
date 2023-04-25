@@ -92,7 +92,9 @@ impl Monitor {
     ) -> Result<(), anyhow::Error> {
         match listen_type {
             ListenType::Fd(fd) => self.epoll.delete(fd)?,
-            ListenType::Path(_) => todo!("Removing inotify handler case not yet supported"),
+            ListenType::Path(_) => {
+                todo!("Removing inotify handler case not yet supported: {listen_type:?}")
+            }
         }
         Ok(())
     }

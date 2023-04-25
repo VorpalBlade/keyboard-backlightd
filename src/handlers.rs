@@ -51,7 +51,6 @@ mod ev_dev {
         time::{Duration, Instant},
     };
 
-    use anyhow::Context;
     use evdev_rs::{
         enums::{EventCode, EV_SYN},
         Device, ReadFlag,
@@ -85,6 +84,8 @@ mod ev_dev {
 
         /// Reopen device, needed on some laptops after resume.
         fn reopen(&mut self) -> anyhow::Result<()> {
+            warn!("Reopening {:?}", self.path);
+            drop(&mut self.dev);
             self.dev = Device::new_from_path(self.path.as_path())?;
             Ok(())
         }
@@ -115,14 +116,9 @@ mod ev_dev {
                     }
                 }
                 // This is a mess, since ENODEV isn't properly exposed via ErrorKind.
-                Err(e) if e.raw_os_error().is_some() => match e.raw_os_error() {
-                    Some(libc::ENODEV) => {
-                        let prev_monitor = self.monitored();
-                        Ok(ProcessAction::Reset { old: prev_monitor })
-                    }
-                    Some(_) => Err(e).with_context(|| format!("Error reading {:?}", self.path)),
-                    None => unreachable!(),
-                },
+                Err(e) if e.raw_os_error() == Some(libc::ENODEV) => Ok(ProcessAction::Reset {
+                    old: self.monitored(),
+                }),
                 Err(e) => {
                     warn!("Error reading {:?}: {}", self.dev.file(), e);
                     Err(e.into())
