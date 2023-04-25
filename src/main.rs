@@ -16,7 +16,7 @@ use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use anyhow::Context;
 use handlers::{EvDevListener, Handler, HwChangeListener};
-use monitor::monitor;
+use monitor::Monitor;
 use state::State;
 
 use crate::{led::Led, utils::wait_for_file};
@@ -61,7 +61,8 @@ fn setup_daemon(config: &flags::KeyboardBacklightd) -> anyhow::Result<()> {
         listeners.push(Box::new(HwChangeListener::new(hw_path.into(), led.clone())));
     }
 
-    monitor(listeners, state, led, config)?;
+    let mut monitor = Monitor::new(led)?;
+    monitor.monitor(listeners, state, config)?;
 
     unreachable!();
 }

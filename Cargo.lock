@@ -104,6 +104,7 @@ dependencies = [
  "anyhow",
  "env_logger",
  "evdev-rs",
+ "libc",
  "log",
  "nix",
  "smallvec",
