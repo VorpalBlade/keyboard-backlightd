@@ -8,9 +8,7 @@ keywords = ["keyboard", "backlight", "laptop", "thinkpad"]
 license = "GPL-3.0-only"
 name = "keyboard-backlightd"
 repository = "https://github.com/VorpalBlade/keyboard-backlightd"
-version = "0.1.4"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+version = "0.1.5"
 
 [profile.release]
 lto = true
