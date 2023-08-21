@@ -32,8 +32,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install Rust
-        run: rustup update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
+        run: rustup install --profile minimal ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
       - name: Install cross
         uses: taiki-e/install-action@cross
+      - name: Cache builds
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
       - name: Cross compile and test
-        run: cross test --target ${{ matrix.target }} --verbose
+        run: cross test --locked --target ${{ matrix.target }} --verbose
