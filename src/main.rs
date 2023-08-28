@@ -7,7 +7,6 @@ mod flags;
 mod handlers;
 mod led;
 mod monitor;
-mod nix_polyfill;
 mod policy;
 mod state;
 mod utils;

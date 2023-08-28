@@ -3,7 +3,7 @@
 use std::{
     cell::RefCell,
     collections::HashMap,
-    os::fd::{AsRawFd, BorrowedFd},
+    os::fd::AsFd,
     rc::Rc,
     time::{Duration, Instant},
 };
@@ -11,18 +11,13 @@ use std::{
 use nix::{
     errno::Errno,
     sys::{
-        epoll::{EpollCreateFlags, EpollFlags},
+        epoll::{Epoll, EpollCreateFlags, EpollEvent, EpollFlags},
         inotify::{AddWatchFlags, InitFlags, Inotify},
     },
 };
 
 use crate::{
-    flags::KeyboardBacklightd,
-    handlers::Handler,
-    led::Led,
-    nix_polyfill::{Epoll, EpollEvent},
-    policy::run_policy,
-    state::State,
+    flags::KeyboardBacklightd, handlers::Handler, led::Led, policy::run_policy, state::State,
 };
 
 /// Marker value in epoll for the inotify watch.
@@ -36,13 +31,10 @@ pub(crate) fn monitor(
     config: &KeyboardBacklightd,
 ) -> anyhow::Result<()> {
     let inotify = Inotify::init(InitFlags::IN_CLOEXEC | InitFlags::IN_NONBLOCK)?;
-    // SAFETY: Epoll and inotify lives equally long. Also this cannot create a memory error anyway.
-    //         This is safe.
-    let ifd = unsafe { BorrowedFd::borrow_raw(inotify.as_raw_fd()) };
     let epoll = Epoll::new(EpollCreateFlags::EPOLL_CLOEXEC)?;
 
     epoll.add(
-        ifd,
+        inotify.as_fd(),
         EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, INOTIFY_HANDLE),
     )?;
 
