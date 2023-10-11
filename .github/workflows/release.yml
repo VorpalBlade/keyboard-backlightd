@@ -1,0 +1,53 @@
+name: Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - v[0-9]+.*
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: taiki-e/create-gh-release-action@v1
+        with:
+          draft: true
+          # (Required) GitHub token for creating GitHub Releases.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  upload-crates-io:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: cargo publish --token ${CRATES_TOKEN}
+        env:
+          CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+  upload-aur:
+    needs:
+      - upload-crates-io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get AUR repo
+        run: git clone https://aur.archlinux.org/keyboard-backlightd.git aur
+      - name: Update PKGBUILD
+        run: |
+          sed -i '/^_pkgver/s/=.*$/='${RELEASE_TAG#refs/tags/v}'/' "aur/PKGBUILD"
+          sed -i '/^pkgrel/s/=.*$/=1/' "aur/PKGBUILD"
+        env:
+          RELEASE_TAG: ${{ github.ref }}
+      - name: Publish AUR package
+        uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
+        with:
+          pkgname: keyboard-backlightd
+          pkgbuild: aur/PKGBUILD
+          updpkgsums: true
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: New upstream release (automatic update from GitHub Actions)
