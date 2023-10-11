@@ -37,7 +37,7 @@ jobs:
         run: git clone https://aur.archlinux.org/keyboard-backlightd.git aur
       - name: Update PKGBUILD
         run: |
-          sed -i '/^_pkgver/s/=.*$/='${RELEASE_TAG#refs/tags/v}'/' "aur/PKGBUILD"
+          sed -i '/^pkgver/s/=.*$/='${RELEASE_TAG#refs/tags/v}'/' "aur/PKGBUILD"
           sed -i '/^pkgrel/s/=.*$/=1/' "aur/PKGBUILD"
         env:
           RELEASE_TAG: ${{ github.ref }}
