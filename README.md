@@ -181,6 +181,21 @@ increasing `WAIT` in the configuration file. This might help with late loaded
 kernel modules causing the device node to not be available when the daemon
 starts.
 
+## Troubleshooting
+
+### The keyboard backlight stops turning on if I hit the key that manually controls the backlight
+
+This is by design. The daemon monitors (on supported laptops) for external
+changes to the keyboard backlight. That could be other software or the user
+pressing some laptop specific key combo (often involving the `Fn` key). On
+modern Thinkpads (2020-ish) this key combo is `Fn+Space` which cycles
+between "off", "half" and "bright".
+
+`keyboard-backlightd` will adapt to what the user sets and toggle between
+"off" and whatever brightness level the user just set. If you happen to set
+it to off, that means you will get toggling between "off" and "off". Just
+hit the key combo again to resume operation at the next level of brightness.
+
 ## Minimum supported rust version (MSRV)
 
 YMMV. It works on rustc 1.67.0 as of writing. It should continue working on
