@@ -12,6 +12,8 @@ xflags::xflags! {
         required -t, --timeout milliseconds: u32
         /// Brightness value to use by default.
         optional -b, --brightness value: u32
+        /// Do not adapt to brightness changes performed externally by the user
+        optional --no-adaptive-brightness
         /// Enable extra verbosity!
         optional -v, --verbose
         /// Timeout during startup for device nodes to appear.

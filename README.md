@@ -196,6 +196,9 @@ between "off", "half" and "bright".
 it to off, that means you will get toggling between "off" and "off". Just
 hit the key combo again to resume operation at the next level of brightness.
 
+If you really don't want this, you can use the flag `--no-adaptive-brightness`
+to the daemon. But consider giving it a try first, you might grow to like it.
+
 ## Minimum supported rust version (MSRV)
 
 YMMV. It works on rustc 1.67.0 as of writing. It should continue working on

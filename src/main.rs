@@ -56,8 +56,10 @@ fn setup_daemon(config: &flags::KeyboardBacklightd) -> anyhow::Result<()> {
     let led = Rc::new(RefCell::new(
         Led::new(config.led.clone()).context("Failed to create LED")?,
     ));
-    if let Some(hw_path) = led.borrow().monitor_path() {
-        listeners.push(Box::new(HwChangeListener::new(hw_path.into(), led.clone())));
+    if !config.no_adaptive_brightness {
+        if let Some(hw_path) = led.borrow().monitor_path() {
+            listeners.push(Box::new(HwChangeListener::new(hw_path.into(), led.clone())));
+        }
     }
 
     monitor(listeners, state, led, config)?;

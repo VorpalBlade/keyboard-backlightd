@@ -86,12 +86,17 @@ impl Led {
     }
 
     /// Set the current brightness
-    pub fn set_brightness(&mut self, brightness: u32, state: &mut State) -> anyhow::Result<()> {
+    pub fn set_brightness(
+        &mut self,
+        brightness: u32,
+        state: &mut State,
+        adaptive_brightness: bool,
+    ) -> anyhow::Result<()> {
         let mut p = self.path.clone();
         p.push(BRIGHTNESS);
 
         // If hardware monitoring is not supported, try reading the previous value.
-        if self.hw_monitor_path.is_none() && brightness == 0 {
+        if adaptive_brightness && self.hw_monitor_path.is_none() && brightness == 0 {
             let old_brightness = read_int(&mut self.brightness_file)?;
             if old_brightness > 0 {
                 state.requested_brightness = old_brightness;
