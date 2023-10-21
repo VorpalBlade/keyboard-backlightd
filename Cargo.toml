@@ -8,7 +8,7 @@ keywords = ["keyboard", "backlight", "laptop", "thinkpad"]
 license = "GPL-3.0-only"
 name = "keyboard-backlightd"
 repository = "https://github.com/VorpalBlade/keyboard-backlightd"
-version = "0.1.6"
+version = "0.1.7"
 
 [profile.release]
 lto = true
