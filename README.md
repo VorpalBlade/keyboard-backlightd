@@ -201,11 +201,9 @@ to the daemon. But consider giving it a try first, you might grow to like it.
 
 ## Minimum supported rust version (MSRV)
 
-YMMV. It works on rustc 1.67.0 as of writing. It should continue working on
-the latest stable Rust. I will not test on older versions than whatever
-happens to be the latest stable when I make a change.
-
-So in summary: There is no MSRV policy.
+Currently at least Rust 1.71.0 is needed, but this may change at any time
+if needed. MSRV change is not considered a breaking change and as such may
+change even in a patch version.
 
 ## License
 

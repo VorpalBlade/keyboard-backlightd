@@ -8,6 +8,7 @@ keywords = ["keyboard", "backlight", "laptop", "thinkpad"]
 license = "GPL-3.0-only"
 name = "keyboard-backlightd"
 repository = "https://github.com/VorpalBlade/keyboard-backlightd"
+rust-version = "1.71.0"
 version = "0.1.7"
 
 [profile.release]
@@ -26,7 +27,7 @@ targets = [
 
 [dependencies]
 anyhow = { version = "1.0.79", features = ["backtrace"] }
-env_logger = { version = "0.10.2", default-features = false }
+env_logger = { version = "0.11.0", default-features = false }
 evdev-rs = "0.6.1"
 log = "0.4.20"
 nix = { version = "0.27.1", default-features = false, features = [

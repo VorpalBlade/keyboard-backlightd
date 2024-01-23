@@ -29,6 +29,7 @@ jobs:
           - stable
           - beta
           - nightly
+          - 1.71.0 # MSRV
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust
@@ -38,6 +39,6 @@ jobs:
       - name: Cache builds
         uses: Swatinem/rust-cache@v2.7.3
         with:
-          key: ${{ matrix.target }}
+          key: ${{ matrix.target }}-${{ matrix.rust }}
       - name: Cross compile and test
         run: cross test --locked --target ${{ matrix.target }} --verbose
