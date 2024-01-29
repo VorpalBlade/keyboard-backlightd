@@ -27,7 +27,7 @@ targets = [
 
 [dependencies]
 anyhow = { version = "1.0.79", features = ["backtrace"] }
-env_logger = { version = "0.11.0", default-features = false }
+env_logger = { version = "0.11.1", default-features = false }
 evdev-rs = "0.6.1"
 log = "0.4.20"
 nix = { version = "0.27.1", default-features = false, features = [
