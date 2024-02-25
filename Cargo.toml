@@ -30,7 +30,7 @@ anyhow = { version = "1.0.80", features = ["backtrace"] }
 env_logger = { version = "0.11.2", default-features = false }
 evdev-rs = "0.6.1"
 log = "0.4.20"
-nix = { version = "0.27.1", default-features = false, features = [
+nix = { version = "0.28.0", default-features = false, features = [
     "event",
     "inotify",
 ] }

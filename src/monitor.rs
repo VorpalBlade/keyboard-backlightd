@@ -11,7 +11,7 @@ use std::{
 use nix::{
     errno::Errno,
     sys::{
-        epoll::{Epoll, EpollCreateFlags, EpollEvent, EpollFlags},
+        epoll::{Epoll, EpollCreateFlags, EpollEvent, EpollFlags, EpollTimeout},
         inotify::{AddWatchFlags, InitFlags, Inotify},
     },
 };
@@ -64,7 +64,7 @@ pub(crate) fn monitor(
         // TODO: Fixed timeout is wrong.
         match epoll.wait(
             &mut events,
-            timeout.map(|x| x.as_millis() as isize).unwrap_or(-1isize),
+            timeout.and_then(|e| TryInto::<EpollTimeout>::try_into(e).ok()),
         ) {
             Ok(_) => (),
             Err(Errno::EINTR) => {
