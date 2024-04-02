@@ -9,7 +9,7 @@ license = "GPL-3.0-only"
 name = "keyboard-backlightd"
 repository = "https://github.com/VorpalBlade/keyboard-backlightd"
 rust-version = "1.71.0"
-version = "0.1.8"
+version = "0.1.9"
 
 [profile.release]
 lto = true
