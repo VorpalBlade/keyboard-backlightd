@@ -29,7 +29,7 @@ targets = [
 anyhow = { version = "1.0.86", features = ["backtrace"] }
 env_logger = { version = "0.11.3", default-features = false }
 evdev-rs = "0.6.1"
-log = "0.4.21"
+log = "0.4.22"
 nix = { version = "0.29.0", default-features = false, features = [
     "event",
     "inotify",
