@@ -12,8 +12,6 @@ pub(crate) struct State {
     pub last_input: Instant,
     /// Describes the current keep-on/keep-off settings.
     pub keep: Option<KeepCurrent>,
-    /// Current brightness
-    pub cur_brightness: u32,
     /// Brightness that we want.
     pub requested_brightness: u32,
 }
@@ -23,7 +21,6 @@ impl State {
         Self {
             last_input: Instant::now(),
             keep: None,
-            cur_brightness: 0,
             requested_brightness: 0,
         }
     }

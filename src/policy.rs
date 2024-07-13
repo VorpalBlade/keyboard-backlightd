@@ -22,8 +22,6 @@ pub(crate) fn run_policy(
     config: &KeyboardBacklightd,
     led: &Rc<RefCell<Led>>,
 ) -> anyhow::Result<Option<Duration>> {
-    state.cur_brightness = led.borrow_mut().brightness()?;
-
     let actions = policy(state, config);
 
     debug!("State: {state:?}");
