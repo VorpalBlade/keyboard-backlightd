@@ -4,6 +4,7 @@ use std::{
     fs::{File, OpenOptions},
     io::{Read, Seek, Write},
     path::{Path, PathBuf},
+    time::Instant,
 };
 
 use anyhow::Context;
@@ -48,11 +49,14 @@ fn monitor_path(mut led_path: PathBuf) -> anyhow::Result<Option<PathBuf>> {
 
 #[derive(Debug)]
 pub(crate) struct Led {
-    /// Path to LED
+    /// Path to LED (sub-directory in `/sys/class/leds`)
     path: PathBuf,
+    /// File handle for brightness control file
     brightness_file: File,
     /// Optional hardware monitoring path
     hw_monitor_path: Option<PathBuf>,
+    /// Most recently known brightness
+    most_recent_brightness: Option<(Instant, u32)>,
 }
 
 impl Led {
@@ -69,12 +73,37 @@ impl Led {
                 .open(&p)
                 .with_context(|| format!("Failed to open {p:?}"))?,
             hw_monitor_path,
+            most_recent_brightness: None,
         })
     }
 
     /// Get the current brightness
     pub fn brightness(&mut self) -> anyhow::Result<u32> {
-        read_int(&mut self.brightness_file).context("Failed to read brightness")
+        let brightness = read_int(&mut self.brightness_file).context("Failed to read brightness");
+        match &brightness {
+            Ok(b) => {
+                self.most_recent_brightness = Some((Instant::now(), *b));
+            }
+            Err(e) => {
+                log::warn!("Failed to read brightness: {e}");
+            }
+        }
+        brightness
+    }
+
+    /// Get the current brightness, possibly using a cached value if recent enough
+    pub fn brightness_maybe_cached(&mut self) -> anyhow::Result<u32> {
+        // If we have hardware monitoring, we can trust the most recent brightness value.
+        if self.hw_monitor_path.is_some() && self.most_recent_brightness.is_some() {
+            return Ok(self.most_recent_brightness.unwrap().1);
+        }
+        // Otherwise, cache for 1 second.
+        if let Some((time, brightness)) = self.most_recent_brightness {
+            if time.elapsed().as_millis() < 1000 {
+                return Ok(brightness);
+            }
+        }
+        self.brightness()
     }
 
     /// Get the max brightness supported
@@ -101,11 +130,20 @@ impl Led {
         }
         self.brightness_file.rewind()?;
         write!(self.brightness_file, "{brightness}")?;
+        self.most_recent_brightness = Some((Instant::now(), brightness));
         Ok(())
     }
 
     /// Get the path to monitor for HW changes. Not all LEDs support this.
-    pub fn monitor_path(&self) -> Option<&Path> {
+    pub fn hw_monitor_path(&self) -> Option<&Path> {
         return self.hw_monitor_path.as_deref();
+    }
+
+    /// Get the path to the brightness file, this is used to monitor for
+    /// other user space programs changing the brightness level.
+    pub fn sw_monitor_path(&self) -> PathBuf {
+        let mut p = self.path.clone();
+        p.push(BRIGHTNESS);
+        p
     }
 }

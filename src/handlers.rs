@@ -21,7 +21,8 @@ pub(crate) trait Handler {
 }
 
 pub(crate) use ev_dev::EvDevListener;
-pub(crate) use hw_change::HwChangeListener;
+pub(crate) use fs_change::HwChangeListener;
+pub(crate) use fs_change::SwChangeListener;
 
 /// Code for handling /dev/input
 mod ev_dev {
@@ -92,7 +93,7 @@ mod ev_dev {
 }
 
 /// Code for handling /sys/class/leds/tpacpi::kbd_backlight/brightness_hw_changed (or similar files)
-mod hw_change {
+mod fs_change {
     use std::{
         cell::RefCell,
         path::PathBuf,
@@ -104,7 +105,7 @@ mod hw_change {
 
     use super::{Handler, ListenType};
 
-    /// Handler for /sys/class/leds/tpacpi::kbd_backlight/brightness_hw_changed (or similar files
+    /// Handler for /sys/class/leds/tpacpi::kbd_backlight/brightness_hw_changed (or similar files)
     #[derive(Debug)]
     pub(crate) struct HwChangeListener {
         path: PathBuf,
@@ -125,6 +126,30 @@ mod hw_change {
         fn process(&mut self, state: &mut State, _dur: &Duration) -> anyhow::Result<()> {
             state.last_input = Instant::now();
             state.requested_brightness = self.led.borrow_mut().brightness()?;
+            Ok(())
+        }
+    }
+
+    /// Handler for other userspace changing the brightness file
+    #[derive(Debug)]
+    pub(crate) struct SwChangeListener {
+        path: PathBuf,
+        led: Rc<RefCell<Led>>,
+    }
+
+    impl SwChangeListener {
+        pub fn new(path: PathBuf, led: Rc<RefCell<Led>>) -> Self {
+            Self { path, led }
+        }
+    }
+
+    impl Handler for SwChangeListener {
+        fn monitored(&self) -> ListenType {
+            ListenType::Path(self.path.as_path())
+        }
+
+        fn process(&mut self, _state: &mut State, _dur: &Duration) -> anyhow::Result<()> {
+            self.led.borrow_mut().brightness()?;
             Ok(())
         }
     }

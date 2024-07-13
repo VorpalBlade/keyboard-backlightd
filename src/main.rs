@@ -15,7 +15,7 @@ use clap::Parser;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use anyhow::Context;
-use handlers::{EvDevListener, Handler, HwChangeListener};
+use handlers::{EvDevListener, Handler, HwChangeListener, SwChangeListener};
 use monitor::monitor;
 use state::State;
 
@@ -53,8 +53,12 @@ fn setup_daemon(config: &flags::Cli) -> anyhow::Result<()> {
         Led::new(config.led.clone()).context("Failed to create LED")?,
     ));
     if !config.no_adaptive_brightness {
-        if let Some(hw_path) = led.borrow().monitor_path() {
+        if let Some(hw_path) = led.borrow().hw_monitor_path() {
             listeners.push(Box::new(HwChangeListener::new(hw_path.into(), led.clone())));
+            listeners.push(Box::new(SwChangeListener::new(
+                led.borrow().sw_monitor_path(),
+                led.clone(),
+            )));
         }
     }
 

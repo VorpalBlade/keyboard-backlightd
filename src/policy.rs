@@ -30,11 +30,13 @@ pub(crate) fn run_policy(
     for action in actions {
         match action {
             PolicyAction::SetLed(brightness) => {
-                led.borrow_mut().set_brightness(
-                    brightness,
-                    state,
-                    !config.no_adaptive_brightness,
-                )?;
+                if led.borrow_mut().brightness_maybe_cached()? != brightness {
+                    led.borrow_mut().set_brightness(
+                        brightness,
+                        state,
+                        !config.no_adaptive_brightness,
+                    )?;
+                }
             }
             PolicyAction::Sleep(dur) => return Ok(dur),
         }
