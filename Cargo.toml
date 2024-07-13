@@ -16,6 +16,10 @@ lto = true
 opt-level = "z"
 panic = "abort"
 
+[profile.profiling]
+debug = true
+inherits = "release"
+
 [package.metadata.docs.rs]
 default-target = "x86_64-unknown-linux-gnu"
 targets = [
