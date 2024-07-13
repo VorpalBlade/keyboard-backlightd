@@ -34,12 +34,12 @@ If you do not use Arch Linux, I would appreciate if you can contribute
 creating a package! However, if you do not want to create a package, do
 something like this to install into `/usr/local`:
 
-```console
-$ # NOTE! Not recommended! This will overwrite your config file for this
-$ # program, which sucks if you customised it. Use your package manager
-$ # instead!
-$ make
-$ sudo make install
+```bash
+# NOTE! Not recommended! This will overwrite your config file for this
+# program, which sucks if you customised it. Use your package manager
+# instead!
+make
+sudo make install
 ```
 
 ## Warning!
@@ -72,26 +72,26 @@ such as `evtest`). This will give you an output such as this:
 $ sudo evtest
 No device specified, trying to scan all of /dev/input/event*
 Available devices:
-/dev/input/event0:	Sleep Button
-/dev/input/event1:	Lid Switch
-/dev/input/event10:	ThinkPad Extra Buttons
-/dev/input/event11:	HDA Intel PCH Mic
-/dev/input/event12:	HDA Intel PCH Headphone
-/dev/input/event13:	HDA Intel PCH HDMI/DP,pcm=3
-/dev/input/event14:	HDA Intel PCH HDMI/DP,pcm=7
-/dev/input/event15:	HDA Intel PCH HDMI/DP,pcm=8
-/dev/input/event16:	Synaptics TM3276-022
-/dev/input/event17:	TPPS/2 IBM TrackPoint
-/dev/input/event18:	Integrated Camera: Integrated C
-/dev/input/event19:	MX Vertical Mouse
-/dev/input/event2:	Power Button
-/dev/input/event3:	AT Translated Set 2 keyboard
-/dev/input/event4:	Video Bus
-/dev/input/event5:	Video Bus
-/dev/input/event6:	Microsoft Comfort Curve Keyboard 3000
-/dev/input/event7:	Microsoft Comfort Curve Keyboard 3000
-/dev/input/event8:	Raydium Corporation Raydium Touch System
-/dev/input/event9:	PC Speaker
+/dev/input/event0:  Sleep Button
+/dev/input/event1:  Lid Switch
+/dev/input/event10: ThinkPad Extra Buttons
+/dev/input/event11: HDA Intel PCH Mic
+/dev/input/event12: HDA Intel PCH Headphone
+/dev/input/event13: HDA Intel PCH HDMI/DP,pcm=3
+/dev/input/event14: HDA Intel PCH HDMI/DP,pcm=7
+/dev/input/event15: HDA Intel PCH HDMI/DP,pcm=8
+/dev/input/event16: Synaptics TM3276-022
+/dev/input/event17: TPPS/2 IBM TrackPoint
+/dev/input/event18: Integrated Camera: Integrated C
+/dev/input/event19: MX Vertical Mouse
+/dev/input/event2:  Power Button
+/dev/input/event3:  AT Translated Set 2 keyboard
+/dev/input/event4:  Video Bus
+/dev/input/event5:  Video Bus
+/dev/input/event6:  Microsoft Comfort Curve Keyboard 3000
+/dev/input/event7:  Microsoft Comfort Curve Keyboard 3000
+/dev/input/event8:  Raydium Corporation Raydium Touch System
+/dev/input/event9:  PC Speaker
 Select the device event number [0-19]:
 ```
 
@@ -143,7 +143,7 @@ Here are some hints for figuring this out:
 
 Thus, our command line for `keyboard-backlightd` would look like:
 
-```
+```text
 -i /dev/input/by-path/platform-i8042-serio-0-event-kbd \
 -i /dev/input/by-path/platform-thinkpad_acpi-event \
 -i /dev/input/by-path/pci-0000:00:1f.4-event-mouse \
@@ -161,7 +161,7 @@ $ ls -d /sys/class/leds/*kbd*
 
 In this case there was only one option. This means we want:
 
-```
+```text
 -l /sys/class/leds/tpacpi::kbd_backlight
 ```
 
@@ -171,9 +171,9 @@ Once you have found your required command line parameters, edit
 `/etc/conf.d/keyboard-backlightd` to set them for use in the systemd service.
 
 Then enable and start the systemd service and make sure everything still works:
-```console
-$ systemctl enable keyboard-backlightd
-$ systemctl start keyboard-backlightd
+```bash
+systemctl enable keyboard-backlightd
+systemctl start keyboard-backlightd
 ```
 
 If you have issues with the service not starting during boot, consider
