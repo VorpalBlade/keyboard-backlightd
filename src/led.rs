@@ -92,9 +92,6 @@ impl Led {
         state: &mut State,
         adaptive_brightness: bool,
     ) -> anyhow::Result<()> {
-        let mut p = self.path.clone();
-        p.push(BRIGHTNESS);
-
         // If hardware monitoring is not supported, try reading the previous value.
         if adaptive_brightness && self.hw_monitor_path.is_none() && brightness == 0 {
             let old_brightness = read_int(&mut self.brightness_file)?;
