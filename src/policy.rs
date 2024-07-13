@@ -9,7 +9,7 @@ use std::{
 use log::debug;
 use smallvec::{smallvec, SmallVec};
 
-use crate::{flags::KeyboardBacklightd, led::Led, state::State};
+use crate::{flags::Cli, led::Led, state::State};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum PolicyAction {
@@ -19,7 +19,7 @@ enum PolicyAction {
 
 pub(crate) fn run_policy(
     state: &mut State,
-    config: &KeyboardBacklightd,
+    config: &Cli,
     led: &Rc<RefCell<Led>>,
 ) -> anyhow::Result<Option<Duration>> {
     let actions = policy(state, config);
@@ -42,7 +42,7 @@ pub(crate) fn run_policy(
     unreachable!("There should always be a sleep action!");
 }
 
-fn policy(state: &mut State, settings: &KeyboardBacklightd) -> SmallVec<[PolicyAction; 2]> {
+fn policy(state: &mut State, settings: &Cli) -> SmallVec<[PolicyAction; 2]> {
     let now = Instant::now();
     let led_timeout = Duration::from_millis(settings.timeout.into());
 

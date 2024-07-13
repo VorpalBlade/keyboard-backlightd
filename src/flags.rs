@@ -1,32 +1,39 @@
 //! xflags argument parsing
 use std::path::PathBuf;
 
-xflags::xflags! {
-    /// Keyboard backlight daemon. Dims backlight after timeout on Thinkpads
-    cmd keyboard-backlightd {
-        /// Paths to evdev devices to monitor. Use /dev/input/by-id or /dev/input/by-path.
-        repeated -i, --monitor-input path: PathBuf
-        /// Path for LED to control.
-        required -l, --led path: PathBuf
-        /// Timeout in milliseconds before backlight is turned off.
-        required -t, --timeout milliseconds: u32
-        /// Brightness value to use by default.
-        optional -b, --brightness value: u32
-        /// Do not adapt to brightness changes performed externally by the user
-        optional --no-adaptive-brightness
-        /// Enable extra verbosity!
-        optional -v, --verbose
-        /// Timeout during startup for device nodes to appear.
-        ///
-        /// This can help with late loaded kernel modules.
-        optional -w, --wait timeout: u32
-    }
+#[derive(Debug, clap::Parser)]
+#[command(version, about, long_about = None)]
+/// Keyboard backlight daemon. Dims backlight after timeout on Thinkpads
+pub struct Cli {
+    /// Paths to evdev devices to monitor. Use /dev/input/by-id or /dev/input/by-path.
+    #[clap(short = 'i', long)]
+    pub monitor_input: Vec<PathBuf>,
+    /// Path for LED to control.
+    #[clap(short, long)]
+    pub led: PathBuf,
+    /// Timeout in milliseconds before backlight is turned off.
+    #[clap(short, long)]
+    pub timeout: u32,
+    /// Brightness value to use by default.
+    #[clap(short, long)]
+    pub brightness: Option<u32>,
+    /// Do not adapt to brightness changes performed externally by the user
+    #[clap(long)]
+    pub no_adaptive_brightness: bool,
+    /// Enable extra verbosity!
+    #[clap(short, long)]
+    pub verbose: bool,
+    /// Timeout during startup for device nodes to appear.
+    ///
+    /// This can help with late loaded kernel modules.
+    #[clap(short, long)]
+    pub wait: Option<u32>,
 }
 
-impl KeyboardBacklightd {
-    pub fn validate(&self) -> xflags::Result<()> {
+impl Cli {
+    pub fn validate(&self) -> anyhow::Result<()> {
         if self.monitor_input.is_empty() {
-            return Err(xflags::Error::new(
+            return Err(anyhow::anyhow!(
                 "At least one monitored input (`-i`) is required",
             ));
         }

@@ -10,6 +10,7 @@ mod monitor;
 mod policy;
 mod state;
 mod utils;
+use clap::Parser;
 
 use std::{cell::RefCell, rc::Rc, time::Duration};
 
@@ -22,19 +23,14 @@ use crate::{led::Led, utils::wait_for_file};
 
 fn main() -> anyhow::Result<()> {
     env_logger::init();
-
-    match flags::KeyboardBacklightd::from_env() {
-        Ok(flags) => match flags.validate() {
-            Ok(()) => setup_daemon(&flags)?,
-            Err(err) => err.exit(),
-        },
-        Err(err) => err.exit(),
-    }
+    let cli = flags::Cli::parse();
+    cli.validate()?;
+    setup_daemon(&cli)?;
     Ok(())
 }
 
 /// Set up to start daemon
-fn setup_daemon(config: &flags::KeyboardBacklightd) -> anyhow::Result<()> {
+fn setup_daemon(config: &flags::Cli) -> anyhow::Result<()> {
     let mut listeners: Vec<Box<dyn Handler>> = vec![];
     let mut state = State::new();
 

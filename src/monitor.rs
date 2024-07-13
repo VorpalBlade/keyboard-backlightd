@@ -16,9 +16,7 @@ use nix::{
     },
 };
 
-use crate::{
-    flags::KeyboardBacklightd, handlers::Handler, led::Led, policy::run_policy, state::State,
-};
+use crate::{flags::Cli, handlers::Handler, led::Led, policy::run_policy, state::State};
 
 /// Marker value in epoll for the inotify watch.
 const INOTIFY_HANDLE: u64 = u64::MAX;
@@ -28,7 +26,7 @@ pub(crate) fn monitor(
     mut listeners: Vec<Box<dyn Handler>>,
     mut state: State,
     led: Rc<RefCell<Led>>,
-    config: &KeyboardBacklightd,
+    config: &Cli,
 ) -> anyhow::Result<()> {
     let inotify = Inotify::init(InitFlags::IN_CLOEXEC | InitFlags::IN_NONBLOCK)?;
     let epoll = Epoll::new(EpollCreateFlags::EPOLL_CLOEXEC)?;
