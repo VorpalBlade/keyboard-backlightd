@@ -1,15 +1,17 @@
 //! This module computes the output action to perform.
 
-use std::{
-    cell::RefCell,
-    rc::Rc,
-    time::{Duration, Instant},
-};
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::time::Duration;
+use std::time::Instant;
 
 use log::debug;
-use smallvec::{smallvec, SmallVec};
+use smallvec::smallvec;
+use smallvec::SmallVec;
 
-use crate::{flags::Cli, led::Led, state::State};
+use crate::flags::Cli;
+use crate::led::Led;
+use crate::state::State;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum PolicyAction {

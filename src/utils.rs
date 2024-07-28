@@ -1,9 +1,9 @@
-use std::{
-    error::Error,
-    fmt::Display,
-    path::{Path, PathBuf},
-    time::{Duration, Instant},
-};
+use std::error::Error;
+use std::fmt::Display;
+use std::path::Path;
+use std::path::PathBuf;
+use std::time::Duration;
+use std::time::Instant;
 
 #[derive(Debug)]
 pub(crate) struct NoSuchFile {

@@ -1,22 +1,27 @@
 //! Main inotify/epoll loop
 
-use std::{
-    cell::RefCell,
-    collections::HashMap,
-    os::fd::AsFd,
-    rc::Rc,
-    time::{Duration, Instant},
-};
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::os::fd::AsFd;
+use std::rc::Rc;
+use std::time::Duration;
+use std::time::Instant;
 
-use nix::{
-    errno::Errno,
-    sys::{
-        epoll::{Epoll, EpollCreateFlags, EpollEvent, EpollFlags, EpollTimeout},
-        inotify::{AddWatchFlags, InitFlags, Inotify},
-    },
-};
+use nix::errno::Errno;
+use nix::sys::epoll::Epoll;
+use nix::sys::epoll::EpollCreateFlags;
+use nix::sys::epoll::EpollEvent;
+use nix::sys::epoll::EpollFlags;
+use nix::sys::epoll::EpollTimeout;
+use nix::sys::inotify::AddWatchFlags;
+use nix::sys::inotify::InitFlags;
+use nix::sys::inotify::Inotify;
 
-use crate::{flags::Cli, handlers::Handler, led::Led, policy::run_policy, state::State};
+use crate::flags::Cli;
+use crate::handlers::Handler;
+use crate::led::Led;
+use crate::policy::run_policy;
+use crate::state::State;
 
 /// Marker value in epoll for the inotify watch.
 const INOTIFY_HANDLE: u64 = u64::MAX;

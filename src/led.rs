@@ -1,11 +1,13 @@
 //! Abstraction for LED in /sys
 
-use std::{
-    fs::{File, OpenOptions},
-    io::{Read, Seek, Write},
-    path::{Path, PathBuf},
-    time::Instant,
-};
+use std::fs::File;
+use std::fs::OpenOptions;
+use std::io::Read;
+use std::io::Seek;
+use std::io::Write;
+use std::path::Path;
+use std::path::PathBuf;
+use std::time::Instant;
 
 use anyhow::Context;
 
@@ -91,9 +93,11 @@ impl Led {
         brightness
     }
 
-    /// Get the current brightness, possibly using a cached value if recent enough
+    /// Get the current brightness, possibly using a cached value if recent
+    /// enough
     pub fn brightness_maybe_cached(&mut self) -> anyhow::Result<u32> {
-        // If we have hardware monitoring, we can trust the most recent brightness value.
+        // If we have hardware monitoring, we can trust the most recent brightness
+        // value.
         if self.hw_monitor_path.is_some() && self.most_recent_brightness.is_some() {
             return Ok(self.most_recent_brightness.unwrap().1);
         }

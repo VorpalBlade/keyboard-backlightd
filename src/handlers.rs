@@ -1,6 +1,12 @@
 //! Handlers for activity on paths
 
-use std::{os::fd::BorrowedFd, path::Path, time::Duration};
+use std::os::fd::BorrowedFd;
+use std::path::Path;
+use std::time::Duration;
+
+pub(crate) use ev_dev::EvDevListener;
+pub(crate) use fs_change::HwChangeListener;
+pub(crate) use fs_change::SwChangeListener;
 
 use crate::state::State;
 
@@ -20,28 +26,24 @@ pub(crate) trait Handler {
     fn process(&mut self, state: &mut State, dur: &Duration) -> anyhow::Result<()>;
 }
 
-pub(crate) use ev_dev::EvDevListener;
-pub(crate) use fs_change::HwChangeListener;
-pub(crate) use fs_change::SwChangeListener;
-
 /// Code for handling /dev/input
 mod ev_dev {
-    use std::{
-        os::fd::AsFd,
-        path::Path,
-        time::{Duration, Instant},
-    };
+    use std::os::fd::AsFd;
+    use std::path::Path;
+    use std::time::Duration;
+    use std::time::Instant;
 
     use anyhow::Context;
-    use evdev_rs::{
-        enums::{EventCode, EV_SYN},
-        Device, ReadFlag,
-    };
+    use evdev_rs::enums::EventCode;
+    use evdev_rs::enums::EV_SYN;
+    use evdev_rs::Device;
+    use evdev_rs::ReadFlag;
     use log::error;
 
     use crate::state::State;
 
-    use super::{Handler, ListenType};
+    use super::Handler;
+    use super::ListenType;
 
     /// Handler for /dev/input
     #[derive(Debug)]
@@ -92,20 +94,24 @@ mod ev_dev {
     }
 }
 
-/// Code for handling /sys/class/leds/tpacpi::kbd_backlight/brightness_hw_changed (or similar files)
+/// Code for handling
+/// /sys/class/leds/tpacpi::kbd_backlight/brightness_hw_changed (or similar
+/// files)
 mod fs_change {
-    use std::{
-        cell::RefCell,
-        path::PathBuf,
-        rc::Rc,
-        time::{Duration, Instant},
-    };
+    use std::cell::RefCell;
+    use std::path::PathBuf;
+    use std::rc::Rc;
+    use std::time::Duration;
+    use std::time::Instant;
 
-    use crate::{led::Led, state::State};
+    use crate::led::Led;
+    use crate::state::State;
 
-    use super::{Handler, ListenType};
+    use super::Handler;
+    use super::ListenType;
 
-    /// Handler for /sys/class/leds/tpacpi::kbd_backlight/brightness_hw_changed (or similar files)
+    /// Handler for /sys/class/leds/tpacpi::kbd_backlight/brightness_hw_changed
+    /// (or similar files)
     #[derive(Debug)]
     pub(crate) struct HwChangeListener {
         path: PathBuf,

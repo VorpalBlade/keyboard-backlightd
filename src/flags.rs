@@ -5,7 +5,8 @@ use std::path::PathBuf;
 #[command(version, about, long_about = None)]
 /// Keyboard backlight daemon. Dims backlight after timeout on Thinkpads
 pub struct Cli {
-    /// Paths to evdev devices to monitor. Use /dev/input/by-id or /dev/input/by-path.
+    /// Paths to evdev devices to monitor. Use /dev/input/by-id or
+    /// /dev/input/by-path.
     #[clap(short = 'i', long)]
     pub monitor_input: Vec<PathBuf>,
     /// Path for LED to control.

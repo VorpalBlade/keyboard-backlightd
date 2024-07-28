@@ -3,6 +3,23 @@
 //! There is no public code API for you to use! However, the command line
 //! interface should be stable.
 
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::time::Duration;
+
+use anyhow::Context;
+use clap::Parser;
+
+use handlers::EvDevListener;
+use handlers::Handler;
+use handlers::HwChangeListener;
+use handlers::SwChangeListener;
+use monitor::monitor;
+use state::State;
+
+use crate::led::Led;
+use crate::utils::wait_for_file;
+
 mod flags;
 mod handlers;
 mod led;
@@ -10,16 +27,6 @@ mod monitor;
 mod policy;
 mod state;
 mod utils;
-use clap::Parser;
-
-use std::{cell::RefCell, rc::Rc, time::Duration};
-
-use anyhow::Context;
-use handlers::{EvDevListener, Handler, HwChangeListener, SwChangeListener};
-use monitor::monitor;
-use state::State;
-
-use crate::{led::Led, utils::wait_for_file};
 
 fn main() -> anyhow::Result<()> {
     env_logger::init();
