@@ -51,7 +51,7 @@ fn monitor_path(mut led_path: PathBuf) -> anyhow::Result<Option<PathBuf>> {
 
 #[derive(Debug)]
 pub(crate) struct Led {
-    /// Path to LED (sub-directory in `/sys/class/leds`)
+    /// Path to LED (subdirectory in `/sys/class/leds`)
     path: PathBuf,
     /// File handle for brightness control file
     brightness_file: File,

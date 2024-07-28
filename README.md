@@ -26,7 +26,7 @@ Why is this needed? Since this is a system daemon it needs to be installed
 system-wide and run as root (to be able to access certain files in `/dev`
 and `/sys`).
 
-Thus you should ideally install this with your distro package manager. A
+Thus, you should ideally install this with your distro package manager. A
 package for Arch Linux is available on [AUR] (maintained by the author of
 this package).
 
@@ -201,7 +201,7 @@ to the daemon. But consider giving it a try first, you might grow to like it.
 
 ## Minimum supported rust version (MSRV)
 
-Currently at least Rust 1.74.0 is needed, but this may change at any time
+Currently, at least Rust 1.74.0 is needed, but this may change at any time
 if needed. MSRV change is not considered a breaking change and as such may
 change even in a patch version.
 

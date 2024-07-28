@@ -70,9 +70,9 @@ mod ev_dev {
                 // This case is that an input event was reported.
                 Ok(key) => {
                     match key.event_code {
-                        // If it was was a LED: Ignore it! (Otherwise pressing
+                        // If it was a LED: Ignore it! Otherwise, pressing
                         // Caps Lock on an external USB keyboard would trigger
-                        // us to turn on the backlight on the built in keyboard.
+                        // us to turn on the backlight on the built-in keyboard.
                         EventCode::EV_LED(_) => Ok(()),
                         // Similarly ignore SYN_REPORT, as these happen after
                         // each EV_LED (and in many other places too).

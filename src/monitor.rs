@@ -47,7 +47,7 @@ pub(crate) fn monitor(
     for (idx, listener) in listeners.iter().enumerate() {
         match listener.monitored() {
             crate::handlers::ListenType::Fd(ref fd) => {
-                // TRICKY BIT: Data = 0 is used to indicate nothing happend.
+                // TRICKY BIT: Data = 0 is used to indicate nothing happened.
                 // We thus offset the array index into listeners by one.
                 epoll.add(
                     fd,
