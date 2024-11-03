@@ -32,6 +32,8 @@ jobs:
           - 1.74.0 # MSRV
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Install Rust
         run: rustup install --profile minimal ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
       - name: Install cross
