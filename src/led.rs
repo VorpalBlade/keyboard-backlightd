@@ -140,7 +140,7 @@ impl Led {
 
     /// Get the path to monitor for HW changes. Not all LEDs support this.
     pub fn hw_monitor_path(&self) -> Option<&Path> {
-        return self.hw_monitor_path.as_deref();
+        self.hw_monitor_path.as_deref()
     }
 
     /// Get the path to the brightness file, this is used to monitor for
