@@ -37,7 +37,7 @@ clap = { version = "4.5.23", features = [
     "help",
     "std",
 ], default-features = false }
-env_logger = { version = "0.11.5", default-features = false }
+env_logger = { version = "0.11.6", default-features = false }
 evdev-rs = "0.6.1"
 log = "0.4.22"
 nix = { version = "0.29.0", default-features = false, features = [
