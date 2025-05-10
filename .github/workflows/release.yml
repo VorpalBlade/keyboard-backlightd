@@ -11,10 +11,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-      - uses: taiki-e/create-gh-release-action@v1.9.1
+      - uses: taiki-e/create-gh-release-action@26b80501670402f1999aff4b934e1574ef2d3705 # v1.9.1
         with:
           draft: true
           # (Required) GitHub token for creating GitHub Releases.
@@ -23,7 +23,7 @@ jobs:
   upload-crates-io:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
       - run: cargo publish --token ${CRATES_TOKEN}
@@ -35,7 +35,7 @@ jobs:
       - upload-crates-io
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
       - name: Get AUR repo
@@ -47,7 +47,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref }}
       - name: Publish AUR package
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
+        uses: KSXGitHub/github-actions-deploy-aur@2ac5a4c1d7035885d46b10e3193393be8460b6f1 # v4.1.1
         with:
           pkgname: keyboard-backlightd
           pkgbuild: aur/PKGBUILD

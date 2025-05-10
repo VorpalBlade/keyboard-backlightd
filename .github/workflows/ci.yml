@@ -31,15 +31,17 @@ jobs:
           - nightly
           - 1.74.0 # MSRV
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
       - name: Install Rust
         run: rustup install --profile minimal ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
       - name: Install cross
-        uses: taiki-e/install-action@cross
+        uses: taiki-e/install-action@83254c543806f3224380bf1001d6fac8feaf2d0b # v2.50.10
+        with:
+          tool: cross@0.2.5
       - name: Cache builds
-        uses: Swatinem/rust-cache@v2.7.8
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
         with:
           key: ${{ matrix.target }}-${{ matrix.rust }}
       - name: Cross compile and test
