@@ -42,6 +42,26 @@ make
 sudo make install
 ```
 
+## Dependencies
+
+Keyboard-backlightd has a couple of dependencies:
+
+* Rust (build time). This can either be installed from your distro's
+  package manager or using [rustup](https://rustup.rs/).
+* `libevdev` (build time and runtime, for reading input devices)
+
+On some distros you may need to install a package with a name such as `libevdev-dev`
+or `libevdev-devel` to get the development files needed to build software using `libevdev`.
+
+Additionally, you may need to install basic build tools. These are usually provided
+by a meta-package such as `base-devel` or `build-essential`, but refer to the
+documentation for your Linux distro for details. You may also need to install
+`pkgconf` or `pkg-config` to help the build process find the `libevdev` library.
+
+The build process will fall back to building `libevdev` from source if it can't
+be found on your system. If so you likely need to install additional dependencies,
+please refer to the documentation of `libevdev`.
+
 ## Warning!
 
 This program will monitor your key presses, but only to detect when you press
@@ -171,6 +191,7 @@ Once you have found your required command line parameters, edit
 `/etc/conf.d/keyboard-backlightd` to set them for use in the systemd service.
 
 Then enable and start the systemd service and make sure everything still works:
+
 ```bash
 systemctl enable keyboard-backlightd
 systemctl start keyboard-backlightd
