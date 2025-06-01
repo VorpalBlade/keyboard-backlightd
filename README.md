@@ -201,7 +201,7 @@ to the daemon. But consider giving it a try first, you might grow to like it.
 
 ## Minimum supported rust version (MSRV)
 
-Currently, at least Rust 1.74.0 is needed, but this may change at any time
+Currently, at least Rust 1.82.0 is needed, but this may change at any time
 if needed. MSRV change is not considered a breaking change and as such may
 change even in a patch version.
 
