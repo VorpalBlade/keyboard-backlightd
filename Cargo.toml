@@ -44,7 +44,7 @@ nix = { version = "0.30.1", default-features = false, features = [
     "event",
     "inotify",
 ] }
-smallvec = { version = "1.15.0", features = [
+smallvec = { version = "1.15.1", features = [
     "const_generics",
     "const_new",
     "union",
