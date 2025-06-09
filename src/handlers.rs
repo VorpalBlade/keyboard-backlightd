@@ -21,7 +21,7 @@ pub(crate) enum ListenType<'a> {
 /// Handles some type of notification
 pub(crate) trait Handler {
     /// List of FDs that needs to be monitored for this listener
-    fn monitored(&self) -> ListenType;
+    fn monitored(&self) -> ListenType<'_>;
     /// Called on change of the monitored thing
     fn process(&mut self, state: &mut State, dur: &Duration) -> anyhow::Result<()>;
 }
@@ -60,7 +60,7 @@ mod ev_dev {
     }
 
     impl Handler for EvDevListener {
-        fn monitored(&self) -> ListenType {
+        fn monitored(&self) -> ListenType<'_> {
             ListenType::Fd(self.dev.file().as_fd())
         }
 
@@ -125,7 +125,7 @@ mod fs_change {
     }
 
     impl Handler for HwChangeListener {
-        fn monitored(&self) -> ListenType {
+        fn monitored(&self) -> ListenType<'_> {
             ListenType::Path(self.path.as_path())
         }
 
@@ -150,7 +150,7 @@ mod fs_change {
     }
 
     impl Handler for SwChangeListener {
-        fn monitored(&self) -> ListenType {
+        fn monitored(&self) -> ListenType<'_> {
             ListenType::Path(self.path.as_path())
         }
 
