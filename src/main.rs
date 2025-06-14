@@ -48,9 +48,6 @@ fn setup_daemon(config: &flags::Cli) -> anyhow::Result<()> {
     }
 
     for e in &config.monitor_input {
-        if let Some(timeout) = config.wait {
-            wait_for_file(e.as_path(), Duration::from_millis(timeout.into()))?;
-        }
         listeners.push(Box::new(EvDevListener::new(e)?));
     }
     if let Some(timeout) = config.wait {
