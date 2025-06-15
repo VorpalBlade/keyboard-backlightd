@@ -3,6 +3,8 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::os::fd::AsFd;
+use std::path::Path;
+use std::path::PathBuf;
 use std::rc::Rc;
 use std::time::Duration;
 use std::time::Instant;
@@ -16,6 +18,8 @@ use nix::sys::epoll::EpollTimeout;
 use nix::sys::inotify::AddWatchFlags;
 use nix::sys::inotify::InitFlags;
 use nix::sys::inotify::Inotify;
+use udev::Event;
+use udev::MonitorBuilder;
 
 use crate::flags::Cli;
 use crate::handlers::Handler;
@@ -24,7 +28,9 @@ use crate::policy::run_policy;
 use crate::state::State;
 
 /// Marker value in epoll for the inotify watch.
-const INOTIFY_HANDLE: u64 = u64::MAX;
+const INOTIFY_DATA: u64 = u64::MAX;
+/// Marker value in epoll for the udev watch.
+const UDEV_DATA:u64 = u64::MAX - 1;
 
 /// Main loop that monitors all the different data sources.
 pub(crate) fn monitor(
@@ -33,12 +39,20 @@ pub(crate) fn monitor(
     led: Rc<RefCell<Led>>,
     config: &Cli,
 ) -> anyhow::Result<()> {
-    let inotify = Inotify::init(InitFlags::IN_CLOEXEC | InitFlags::IN_NONBLOCK)?;
     let epoll = Epoll::new(EpollCreateFlags::EPOLL_CLOEXEC)?;
 
+    let inotify = Inotify::init(InitFlags::IN_CLOEXEC | InitFlags::IN_NONBLOCK)?;
     epoll.add(
         inotify.as_fd(),
-        EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, INOTIFY_HANDLE),
+        EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, INOTIFY_DATA),
+    )?;
+
+    let udev_socket = MonitorBuilder::new()?
+        .match_subsystem("input")?
+        .listen()?;
+    epoll.add(
+        udev_socket.as_fd(),
+        EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, UDEV_DATA),
     )?;
 
     let mut inotify_map = HashMap::new();
@@ -85,13 +99,16 @@ pub(crate) fn monitor(
         // Process events
         for ref event in events {
             match event.data() {
-                INOTIFY_HANDLE => {
+                INOTIFY_DATA => {
                     for ievent in inotify.read_events()? {
                         let idx = inotify_map.get(&ievent.wd).unwrap();
                         let l = listeners.get_mut(*idx).unwrap();
                         l.process(&mut state, &duration)?;
                     }
-                }
+                },
+                UDEV_DATA => {
+                    todo!();
+                },
                 0 => (),
                 idx => {
                     let l = listeners.get_mut((idx - 1) as usize).unwrap();
