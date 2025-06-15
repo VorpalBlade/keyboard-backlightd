@@ -37,7 +37,7 @@ fn main() -> anyhow::Result<()> {
 
 /// Set up to start daemon
 fn setup_daemon(config: &flags::Cli) -> anyhow::Result<()> {
-    let mut evdev_listeners: Vec<EvDevListener> = vec![];
+    let mut evdev_listeners = vec![];
     let mut swbc_listener = None;
     let mut hwbc_listener = None;
     let mut state = State::new();
@@ -45,7 +45,7 @@ fn setup_daemon(config: &flags::Cli) -> anyhow::Result<()> {
     state.on_brightness = config.brightness.unwrap_or(1);
 
     for e in &config.monitor_input {
-        evdev_listeners.push(EvDevListener::new(e)?);
+        evdev_listeners.push(Some(EvDevListener::new(e)?));
     }
     if let Some(timeout) = config.wait {
         wait_for_file(config.led_base_dir.as_path(), Duration::from_millis(timeout.into()))?;

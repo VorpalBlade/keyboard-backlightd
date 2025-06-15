@@ -7,6 +7,7 @@ pub(crate) use fs_change::SwBrightnessChangeListener;
 /// Code for handling /dev/input
 mod ev_dev {
     use std::path::Path;
+    use std::path::PathBuf;
     use std::time::Duration;
     use std::time::Instant;
 
@@ -23,12 +24,14 @@ mod ev_dev {
     #[derive(Debug)]
     pub(crate) struct EvDevListener {
         pub dev: Device,
+        pub devnode: PathBuf,
     }
 
     impl EvDevListener {
         pub fn new(path: &Path) -> anyhow::Result<Self> {
             Ok(Self {
                 dev: Device::new_from_path(path)?,
+                devnode: path.to_path_buf(),
             })
         }
 

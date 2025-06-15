@@ -36,7 +36,11 @@ const UDEV_DATA:u64 = u64::MAX - 1;
 
 /// Main loop that monitors all the different data sources.
 pub(crate) fn monitor(
-    mut evdev_listeners: Vec<EvDevListener>,
+    // FIXME: A better representation. Currently,
+    // 1. The Vec grows unbounded
+    // 2. Can overflow (if there are 4B+ devices to watch)
+    // 3. Each removed listener still occupies some space.
+    mut evdev_listeners: Vec<Option<EvDevListener>>,
     mut sw_bcl: Option<SwBrightnessChangeListener>,
     mut hw_bcl: Option<HwBrightnessChangeListener>,
     mut state: State,
@@ -75,7 +79,7 @@ pub(crate) fn monitor(
         // TRICKY BIT: Data = 0 is used to indicate nothing happened.
         // We thus offset the array index into listeners by one.
         epoll.add(
-            listener.dev.file().as_fd(),
+            listener.as_ref().unwrap().dev.file().as_fd(),
             EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, (idx + 1) as u64),
         )?;
     }
@@ -134,15 +138,21 @@ pub(crate) fn monitor(
                                 new_listener.dev.file().as_fd(),
                                 EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, (idx + 1) as u64),
                             )?;
-                            evdev_listeners.push(new_listener);
+                            evdev_listeners.push(Some(new_listener));
                         } else if udev_event.event_type() == EventType::Remove {
-                            todo!();
+                            let (idx, listener) = evdev_listeners.iter()
+                                .enumerate()
+                                .filter(|(_, l)| l.is_some())
+                                .map(|(idx, l)| (idx, l.as_ref().unwrap()))
+                                .find(|(_, l)| l.devnode == devnode).unwrap();
+                            epoll.delete(listener.dev.file().as_fd())?;
+                            evdev_listeners[idx] = None;
                         }
                     }
                 },
                 0 => (),
                 idx => {
-                    let l = evdev_listeners.get_mut((idx - 1) as usize).unwrap();
+                    let l = evdev_listeners.get_mut((idx - 1) as usize).unwrap().as_mut().unwrap();
                     l.process(&mut state, &duration)?;
                 }
             }
