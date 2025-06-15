@@ -11,9 +11,8 @@ use anyhow::Context;
 use clap::Parser;
 
 use handlers::EvDevListener;
-use handlers::Handler;
-use handlers::HwChangeListener;
-use handlers::SwChangeListener;
+use handlers::HwBrightnessChangeListener;
+use handlers::SwBrightnessChangeListener;
 use monitor::monitor;
 use state::State;
 
@@ -38,13 +37,15 @@ fn main() -> anyhow::Result<()> {
 
 /// Set up to start daemon
 fn setup_daemon(config: &flags::Cli) -> anyhow::Result<()> {
-    let mut listeners: Vec<Box<dyn Handler>> = vec![];
+    let mut evdev_listeners: Vec<EvDevListener> = vec![];
+    let mut swbc_listener = None;
+    let mut hwbc_listener = None;
     let mut state = State::new();
 
     state.on_brightness = config.brightness.unwrap_or(1);
 
     for e in &config.monitor_input {
-        listeners.push(Box::new(EvDevListener::new(e)?));
+        evdev_listeners.push(EvDevListener::new(e)?);
     }
     if let Some(timeout) = config.wait {
         wait_for_file(config.led_base_dir.as_path(), Duration::from_millis(timeout.into()))?;
@@ -54,16 +55,13 @@ fn setup_daemon(config: &flags::Cli) -> anyhow::Result<()> {
     ));
 
     if !config.no_adaptive_brightness {
-        if let Some(hw_path) = led.borrow().hw_monitor_path() {
-            listeners.push(Box::new(HwChangeListener::new(hw_path.into(), led.clone())));
+        swbc_listener = Some(SwBrightnessChangeListener { led: led.clone() });
+        if led.borrow().hw_monitor_path().is_some() {
+            hwbc_listener = Some(HwBrightnessChangeListener { led: led.clone() });
         }
-        listeners.push(Box::new(SwChangeListener::new(
-                    led.borrow().sw_monitor_path(),
-                    led.clone(),
-        )));
     }
 
-    monitor(listeners, state, led, config)?;
+    monitor(evdev_listeners, swbc_listener, hwbc_listener, state, led, config)?;
 
     unreachable!();
 }

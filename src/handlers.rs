@@ -1,34 +1,11 @@
 //! Handlers for activity on paths
 
-use std::os::fd::BorrowedFd;
-use std::path::Path;
-use std::time::Duration;
-
 pub(crate) use ev_dev::EvDevListener;
-pub(crate) use fs_change::HwChangeListener;
-pub(crate) use fs_change::SwChangeListener;
-
-use crate::state::State;
-
-/// Describes what a handler wants to monitor.
-pub(crate) enum ListenType<'a> {
-    /// Monitor a file descriptor
-    Fd(BorrowedFd<'a>),
-    /// Monitor a path
-    Path(&'a Path),
-}
-
-/// Handles some type of notification
-pub(crate) trait Handler {
-    /// List of FDs that needs to be monitored for this listener
-    fn monitored(&self) -> ListenType<'_>;
-    /// Called on change of the monitored thing
-    fn process(&mut self, state: &mut State, dur: &Duration) -> anyhow::Result<()>;
-}
+pub(crate) use fs_change::HwBrightnessChangeListener;
+pub(crate) use fs_change::SwBrightnessChangeListener;
 
 /// Code for handling /dev/input
 mod ev_dev {
-    use std::os::fd::AsFd;
     use std::path::Path;
     use std::time::Duration;
     use std::time::Instant;
@@ -42,13 +19,10 @@ mod ev_dev {
 
     use crate::state::State;
 
-    use super::Handler;
-    use super::ListenType;
-
     /// Handler for /dev/input
     #[derive(Debug)]
     pub(crate) struct EvDevListener {
-        dev: Device,
+        pub dev: Device,
     }
 
     impl EvDevListener {
@@ -57,14 +31,8 @@ mod ev_dev {
                 dev: Device::new_from_path(path)?,
             })
         }
-    }
 
-    impl Handler for EvDevListener {
-        fn monitored(&self) -> ListenType<'_> {
-            ListenType::Fd(self.dev.file().as_fd())
-        }
-
-        fn process(&mut self, state: &mut State, _dur: &Duration) -> anyhow::Result<()> {
+        pub fn process(&mut self, state: &mut State, _dur: &Duration) -> anyhow::Result<()> {
             let ev = self.dev.next_event(ReadFlag::NORMAL).map(|val| val.1);
             match ev {
                 // This case is that an input event was reported.
@@ -99,7 +67,6 @@ mod ev_dev {
 /// files)
 mod fs_change {
     use std::cell::RefCell;
-    use std::path::PathBuf;
     use std::rc::Rc;
     use std::time::Duration;
     use std::time::Instant;
@@ -107,29 +74,15 @@ mod fs_change {
     use crate::led::Led;
     use crate::state::State;
 
-    use super::Handler;
-    use super::ListenType;
-
     /// Handler for /sys/class/leds/tpacpi::kbd_backlight/brightness_hw_changed
     /// (or similar files)
     #[derive(Debug)]
-    pub(crate) struct HwChangeListener {
-        path: PathBuf,
-        led: Rc<RefCell<Led>>,
+    pub(crate) struct HwBrightnessChangeListener {
+        pub led: Rc<RefCell<Led>>,
     }
 
-    impl HwChangeListener {
-        pub fn new(path: PathBuf, led: Rc<RefCell<Led>>) -> Self {
-            Self { path, led }
-        }
-    }
-
-    impl Handler for HwChangeListener {
-        fn monitored(&self) -> ListenType<'_> {
-            ListenType::Path(self.path.as_path())
-        }
-
-        fn process(&mut self, state: &mut State, _dur: &Duration) -> anyhow::Result<()> {
+    impl HwBrightnessChangeListener {
+        pub fn process(&mut self, state: &mut State, _dur: &Duration) -> anyhow::Result<()> {
             state.last_input = Instant::now();
             state.on_brightness = self.led.borrow_mut().brightness()?;
             Ok(())
@@ -138,23 +91,12 @@ mod fs_change {
 
     /// Handler for other userspace changing the brightness file
     #[derive(Debug)]
-    pub(crate) struct SwChangeListener {
-        path: PathBuf,
-        led: Rc<RefCell<Led>>,
+    pub(crate) struct SwBrightnessChangeListener {
+        pub led: Rc<RefCell<Led>>,
     }
 
-    impl SwChangeListener {
-        pub fn new(path: PathBuf, led: Rc<RefCell<Led>>) -> Self {
-            Self { path, led }
-        }
-    }
-
-    impl Handler for SwChangeListener {
-        fn monitored(&self) -> ListenType<'_> {
-            ListenType::Path(self.path.as_path())
-        }
-
-        fn process(&mut self, _state: &mut State, _dur: &Duration) -> anyhow::Result<()> {
+    impl SwBrightnessChangeListener {
+        pub fn process(&mut self, _state: &mut State, _dur: &Duration) -> anyhow::Result<()> {
             self.led.borrow_mut().brightness()?;
             Ok(())
         }

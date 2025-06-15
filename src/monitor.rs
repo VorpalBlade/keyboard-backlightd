@@ -1,7 +1,6 @@
 //! Main inotify/epoll loop
 
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::os::fd::AsFd;
 use std::path::Path;
 use std::path::PathBuf;
@@ -23,12 +22,12 @@ use udev::EventType;
 use udev::MonitorBuilder;
 
 use crate::flags::Cli;
-use crate::handlers::Handler;
-use crate::handlers::ListenType;
 use crate::led::Led;
 use crate::policy::run_policy;
 use crate::state::State;
 use crate::EvDevListener;
+use crate::HwBrightnessChangeListener;
+use crate::SwBrightnessChangeListener;
 
 /// Marker value in epoll for the inotify watch.
 const INOTIFY_DATA: u64 = u64::MAX;
@@ -37,7 +36,9 @@ const UDEV_DATA:u64 = u64::MAX - 1;
 
 /// Main loop that monitors all the different data sources.
 pub(crate) fn monitor(
-    mut listeners: Vec<Box<dyn Handler>>,
+    mut evdev_listeners: Vec<EvDevListener>,
+    mut sw_bcl: Option<SwBrightnessChangeListener>,
+    mut hw_bcl: Option<HwBrightnessChangeListener>,
     mut state: State,
     led: Rc<RefCell<Led>>,
     config: &Cli,
@@ -58,23 +59,25 @@ pub(crate) fn monitor(
         EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, UDEV_DATA),
     )?;
 
-    let mut inotify_map = HashMap::new();
+    let mut sw_bcl_wd = None;
+    let mut hw_bcl_wd = None;
 
-    // Add all the listeners
-    for (idx, listener) in listeners.iter().enumerate() {
-        match listener.monitored() {
-            crate::handlers::ListenType::Fd(ref fd) => {
-                // TRICKY BIT: Data = 0 is used to indicate nothing happened.
-                // We thus offset the array index into listeners by one.
-                epoll.add(
-                    fd,
-                    EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, (idx + 1) as u64),
-                )?;
-            }
-            crate::handlers::ListenType::Path(p) => {
-                inotify_map.insert(inotify.add_watch(p, AddWatchFlags::IN_MODIFY)?, idx);
-            }
-        }
+    // Add brightness change listeners to inotify
+    if let Some(ref listener) = sw_bcl {
+        sw_bcl_wd = Some(inotify.add_watch(&listener.led.borrow().sw_monitor_path(), AddWatchFlags::IN_MODIFY)?);
+    }
+    if let Some(ref listener) = hw_bcl {
+        hw_bcl_wd = Some(inotify.add_watch(listener.led.borrow().hw_monitor_path().unwrap(), AddWatchFlags::IN_MODIFY)?);
+    }
+
+    // Add evdev listeners to epoll
+    for (idx, listener) in evdev_listeners.iter().enumerate() {
+        // TRICKY BIT: Data = 0 is used to indicate nothing happened.
+        // We thus offset the array index into listeners by one.
+        epoll.add(
+            listener.dev.file().as_fd(),
+            EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, (idx + 1) as u64),
+        )?;
     }
 
     let mut timeout = Some(Duration::ZERO);
@@ -104,9 +107,11 @@ pub(crate) fn monitor(
             match event.data() {
                 INOTIFY_DATA => {
                     for ievent in inotify.read_events()? {
-                        let idx = inotify_map.get(&ievent.wd).unwrap();
-                        let l = listeners.get_mut(*idx).unwrap();
-                        l.process(&mut state, &duration)?;
+                        if sw_bcl_wd.is_some_and(|wd| wd == ievent.wd) {
+                            sw_bcl.as_mut().unwrap().process(&mut state, &duration)?;
+                        } else if hw_bcl_wd.is_some_and(|wd| wd == ievent.wd) {
+                            hw_bcl.as_mut().unwrap().process(&mut state, &duration)?;
+                        }
                     }
                 },
                 UDEV_DATA => {
@@ -123,16 +128,13 @@ pub(crate) fn monitor(
                         let devnode = devnode.unwrap();
 
                         if udev_event.event_type() == EventType::Add {
-                            let idx = listeners.len();
+                            let idx = evdev_listeners.len();
                             let new_listener = EvDevListener::new(devnode)?;
-                            // (if condition always true)
-                            if let ListenType::Fd(fd) = new_listener.monitored() {
-                                epoll.add(
-                                    fd,
-                                    EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, (idx + 1) as u64),
-                                )?;
-                            }
-                            listeners.push(Box::new(new_listener));
+                            epoll.add(
+                                new_listener.dev.file().as_fd(),
+                                EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, (idx + 1) as u64),
+                            )?;
+                            evdev_listeners.push(new_listener);
                         } else if udev_event.event_type() == EventType::Remove {
                             todo!();
                         }
@@ -140,7 +142,7 @@ pub(crate) fn monitor(
                 },
                 0 => (),
                 idx => {
-                    let l = listeners.get_mut((idx - 1) as usize).unwrap();
+                    let l = evdev_listeners.get_mut((idx - 1) as usize).unwrap();
                     l.process(&mut state, &duration)?;
                 }
             }
