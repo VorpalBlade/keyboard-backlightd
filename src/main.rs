@@ -41,20 +41,16 @@ fn setup_daemon(config: &flags::Cli) -> anyhow::Result<()> {
     let mut listeners: Vec<Box<dyn Handler>> = vec![];
     let mut state = State::new();
 
-    if let Some(brightness) = config.brightness {
-        state.requested_brightness = brightness;
-    } else {
-        state.requested_brightness = 1;
-    }
+    state.on_brightness = config.brightness.unwrap_or(1);
 
     for e in &config.monitor_input {
         listeners.push(Box::new(EvDevListener::new(e)?));
     }
     if let Some(timeout) = config.wait {
-        wait_for_file(config.led.as_path(), Duration::from_millis(timeout.into()))?;
+        wait_for_file(config.led_base_dir.as_path(), Duration::from_millis(timeout.into()))?;
     }
     let led = Rc::new(RefCell::new(
-        Led::new(config.led.clone()).context("Failed to create LED")?,
+        Led::new(config.led_base_dir.clone()).context("Failed to create LED")?,
     ));
     if !config.no_adaptive_brightness {
         if let Some(hw_path) = led.borrow().hw_monitor_path() {
