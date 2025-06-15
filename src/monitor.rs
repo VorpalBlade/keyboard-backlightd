@@ -19,13 +19,16 @@ use nix::sys::inotify::AddWatchFlags;
 use nix::sys::inotify::InitFlags;
 use nix::sys::inotify::Inotify;
 use udev::Event;
+use udev::EventType;
 use udev::MonitorBuilder;
 
 use crate::flags::Cli;
 use crate::handlers::Handler;
+use crate::handlers::ListenType;
 use crate::led::Led;
 use crate::policy::run_policy;
 use crate::state::State;
+use crate::EvDevListener;
 
 /// Marker value in epoll for the inotify watch.
 const INOTIFY_DATA: u64 = u64::MAX;
@@ -107,7 +110,33 @@ pub(crate) fn monitor(
                     }
                 },
                 UDEV_DATA => {
-                    todo!();
+                    for udev_event in udev_socket.iter() {
+                        // We only monitor 'add' and 'remove' events
+                        if ![EventType::Add, EventType::Remove].contains(&udev_event.event_type()) {
+                            continue;
+                        }
+
+                        let devnode = get_devnode_if_monitored(&udev_event, &config.monitor_input);
+                        if devnode.is_none() {
+                            continue;
+                        }
+                        let devnode = devnode.unwrap();
+
+                        if udev_event.event_type() == EventType::Add {
+                            let idx = listeners.len();
+                            let new_listener = EvDevListener::new(devnode)?;
+                            // (if condition always true)
+                            if let ListenType::Fd(fd) = new_listener.monitored() {
+                                epoll.add(
+                                    fd,
+                                    EpollEvent::new(EpollFlags::EPOLLIN | EpollFlags::EPOLLERR, (idx + 1) as u64),
+                                )?;
+                            }
+                            listeners.push(Box::new(new_listener));
+                        } else if udev_event.event_type() == EventType::Remove {
+                            todo!();
+                        }
+                    }
                 },
                 0 => (),
                 idx => {
@@ -118,4 +147,40 @@ pub(crate) fn monitor(
         }
         timeout = run_policy(&mut state, config, &led)?;
     }
+}
+
+fn get_devnode_if_monitored<'a>(event: &'a Event, cli_inputs: &Vec<PathBuf>) -> Option<&'a Path> {
+    let devnode = event.devnode()?;
+
+    if cli_inputs.contains(&devnode.to_path_buf()) {
+        return Some(devnode);
+    }
+
+    if !devnode
+        .file_name().unwrap().to_str().unwrap()
+        .starts_with("event")
+    {
+        return None;
+    }
+
+    const MONITORED_PROPERTIES: [&str; 4] = [
+        "ID_INPUT_KEYBOARD",
+        //"ID_INPUT_KEY",
+        "ID_INPUT_MOUSE",
+        "ID_INPUT_TOUCHPAD",
+        //"ID_INPUT_TOUCHSCREEN",
+        //"ID_INPUT_TABLET",
+        "ID_INPUT_JOYSTICK",
+        //"ID_INPUT_ACCELEROMETER"
+    ];
+
+    if event.properties()
+        .map(|prop| prop.name().to_string_lossy().to_string())
+        .filter(|prop_name| MONITORED_PROPERTIES.contains(&prop_name.as_str()))
+        .next().is_none()
+    {
+        return None;
+    }
+
+    Some(devnode)
 }
