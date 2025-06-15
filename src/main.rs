@@ -52,14 +52,15 @@ fn setup_daemon(config: &flags::Cli) -> anyhow::Result<()> {
     let led = Rc::new(RefCell::new(
         Led::new(config.led_base_dir.clone()).context("Failed to create LED")?,
     ));
+
     if !config.no_adaptive_brightness {
         if let Some(hw_path) = led.borrow().hw_monitor_path() {
             listeners.push(Box::new(HwChangeListener::new(hw_path.into(), led.clone())));
-            listeners.push(Box::new(SwChangeListener::new(
-                led.borrow().sw_monitor_path(),
-                led.clone(),
-            )));
         }
+        listeners.push(Box::new(SwChangeListener::new(
+                    led.borrow().sw_monitor_path(),
+                    led.clone(),
+        )));
     }
 
     monitor(listeners, state, led, config)?;
