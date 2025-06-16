@@ -44,9 +44,11 @@ fn setup_daemon(config: &flags::Cli) -> anyhow::Result<()> {
 
     state.on_brightness = config.brightness.unwrap_or(1);
 
-    for e in &config.monitor_input {
-        evdev_listeners.push(Some(EvDevListener::new(e)?));
+    let devices_to_monitor = utils::normalize_devices(config.monitor_input.clone(), utils::get_default_devices()?)?;
+    for e in devices_to_monitor {
+        evdev_listeners.push(Some(EvDevListener::new(&e)?));
     }
+
     if let Some(timeout) = config.wait {
         wait_for_file(config.led_base_dir.as_path(), Duration::from_millis(timeout.into()))?;
     }

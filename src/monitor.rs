@@ -1,10 +1,7 @@
 //! Main inotify/epoll loop
 
 use std::cell::RefCell;
-use std::fs;
 use std::os::fd::AsFd;
-use std::path::Path;
-use std::path::PathBuf;
 use std::rc::Rc;
 use std::time::Duration;
 use std::time::Instant;
@@ -18,7 +15,6 @@ use nix::sys::epoll::EpollTimeout;
 use nix::sys::inotify::AddWatchFlags;
 use nix::sys::inotify::InitFlags;
 use nix::sys::inotify::Inotify;
-use udev::Event;
 use udev::EventType;
 use udev::MonitorBuilder;
 
@@ -26,6 +22,7 @@ use crate::flags::Cli;
 use crate::led::Led;
 use crate::policy::run_policy;
 use crate::state::State;
+use crate::utils::get_devnode_if_monitored;
 use crate::EvDevListener;
 use crate::HwBrightnessChangeListener;
 use crate::SwBrightnessChangeListener;
@@ -160,44 +157,4 @@ pub(crate) fn monitor(
         }
         timeout = run_policy(&mut state, config, &led)?;
     }
-}
-
-fn get_devnode_if_monitored<'a>(event: &'a Event, cli_inputs: &Vec<PathBuf>) -> Option<&'a Path> {
-    let devnode = event.devnode()?;
-
-    if cli_inputs.iter()
-        .filter(|i| fs::exists(i).is_ok_and(|exists| exists))
-        .map(|i| fs::canonicalize(i).unwrap())
-        .any(|i| &i == devnode)
-    {
-        return Some(devnode);
-    }
-
-    if !devnode
-        .file_name().unwrap().to_str().unwrap()
-        .starts_with("event")
-    {
-        return None;
-    }
-
-    const MONITORED_PROPERTIES: [&str; 4] = [
-        "ID_INPUT_KEYBOARD",
-        //"ID_INPUT_KEY",
-        "ID_INPUT_MOUSE",
-        "ID_INPUT_TOUCHPAD",
-        //"ID_INPUT_TOUCHSCREEN",
-        //"ID_INPUT_TABLET",
-        "ID_INPUT_JOYSTICK",
-        //"ID_INPUT_ACCELEROMETER"
-    ];
-
-    if event.properties()
-        .map(|prop| prop.name().to_string_lossy().to_string())
-        .filter(|prop_name| MONITORED_PROPERTIES.contains(&prop_name.as_str()))
-        .next().is_none()
-    {
-        return None;
-    }
-
-    Some(devnode)
 }
