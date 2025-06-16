@@ -1,6 +1,7 @@
 //! Main inotify/epoll loop
 
 use std::cell::RefCell;
+use std::fs;
 use std::os::fd::AsFd;
 use std::path::Path;
 use std::path::PathBuf;
@@ -164,7 +165,11 @@ pub(crate) fn monitor(
 fn get_devnode_if_monitored<'a>(event: &'a Event, cli_inputs: &Vec<PathBuf>) -> Option<&'a Path> {
     let devnode = event.devnode()?;
 
-    if cli_inputs.contains(&devnode.to_path_buf()) {
+    if cli_inputs.iter()
+        .filter(|i| fs::exists(i).is_ok_and(|exists| exists))
+        .map(|i| fs::canonicalize(i).unwrap())
+        .any(|i| &i == devnode)
+    {
         return Some(devnode);
     }
 

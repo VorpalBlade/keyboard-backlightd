@@ -6,7 +6,7 @@ pub(crate) use fs_change::SwBrightnessChangeListener;
 
 /// Code for handling /dev/input
 mod ev_dev {
-    use std::io;
+    use std::fs;
     use std::path::Path;
     use std::path::PathBuf;
     use std::time::Duration;
@@ -30,9 +30,12 @@ mod ev_dev {
 
     impl EvDevListener {
         pub fn new(path: &Path) -> anyhow::Result<Self> {
+            // EvDevListener will always use target device files.
+            // Symlinks are only used during comparisons.
+            let path = fs::canonicalize(path)?;
             Ok(Self {
-                dev: Device::new_from_path(path)?,
-                devnode: path.to_path_buf(),
+                dev: Device::new_from_path(&path)?,
+                devnode: path,
             })
         }
 
