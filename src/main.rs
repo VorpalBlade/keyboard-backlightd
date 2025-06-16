@@ -30,7 +30,6 @@ mod utils;
 fn main() -> anyhow::Result<()> {
     env_logger::init();
     let cli = flags::Cli::parse();
-    cli.validate()?;
     setup_daemon(&cli)?;
     Ok(())
 }

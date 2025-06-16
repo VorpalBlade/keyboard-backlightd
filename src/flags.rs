@@ -30,14 +30,3 @@ pub struct Cli {
     #[clap(short, long)]
     pub wait: Option<u32>,
 }
-
-impl Cli {
-    pub fn validate(&self) -> anyhow::Result<()> {
-        if self.monitor_input.is_empty() {
-            return Err(anyhow::anyhow!(
-                "At least one monitored input (`-i`) is required",
-            ));
-        }
-        Ok(())
-    }
-}
