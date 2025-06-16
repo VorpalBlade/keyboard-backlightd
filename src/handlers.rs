@@ -6,6 +6,7 @@ pub(crate) use fs_change::SwBrightnessChangeListener;
 
 /// Code for handling /dev/input
 mod ev_dev {
+    use std::io;
     use std::path::Path;
     use std::path::PathBuf;
     use std::time::Duration;
@@ -55,6 +56,12 @@ mod ev_dev {
                             Ok(())
                         }
                     }
+                }
+                Err(e) if e.raw_os_error().is_some_and(|code| code == 19) => {
+                    // FIXME: This error type can be caused by either:
+                    // 1. Removed device, which will be handled by the upcoming udev event
+                    // 2. Something else. Handle that situation some day?
+                    Ok(())
                 }
                 Err(e) => {
                     error!("Error reading {:?}: {}", self.dev.file(), e);
