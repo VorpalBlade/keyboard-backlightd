@@ -11,7 +11,7 @@ pub struct Cli {
     pub monitor_input: Vec<PathBuf>,
     /// Path for LED to control.
     #[clap(short, long = "led")]
-    pub led_base_dir: PathBuf,
+    pub led_base_dir: Option<PathBuf>,
     /// Timeout in milliseconds before backlight is turned off.
     #[clap(short, long)]
     pub timeout: u32,
