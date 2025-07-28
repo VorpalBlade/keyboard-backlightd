@@ -41,7 +41,7 @@ jobs:
       - name: Install Rust
         run: rustup install --profile minimal ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
       - name: Install cross
-        uses: taiki-e/install-action@c99cc51b309eee71a866715cfa08c922f11cf898 # v2.56.19
+        uses: taiki-e/install-action@a416ddeedbd372e614cc1386e8b642692f66865e # v2.57.1
         with:
           tool: cross@latest
       - name: Cache builds
