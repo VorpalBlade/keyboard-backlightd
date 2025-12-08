@@ -39,7 +39,7 @@ clap = { version = "4.5.53", features = [
 ], default-features = false }
 env_logger = { version = "0.11.8", default-features = false }
 evdev-rs = "0.6.3"
-log = "0.4.28"
+log = "0.4.29"
 nix = { version = "0.30.1", default-features = false, features = [
     "event",
     "inotify",
