@@ -4,6 +4,7 @@
 //! interface should be stable.
 
 use std::cell::RefCell;
+use std::path::Path;
 use std::rc::Rc;
 use std::time::Duration;
 
@@ -11,9 +12,8 @@ use anyhow::Context;
 use clap::Parser;
 
 use handlers::EvDevListener;
-use handlers::Handler;
-use handlers::HwChangeListener;
-use handlers::SwChangeListener;
+use handlers::HwBrightnessChangeListener;
+use handlers::SwBrightnessChangeListener;
 use monitor::monitor;
 use state::State;
 
@@ -30,46 +30,60 @@ mod utils;
 
 fn main() -> anyhow::Result<()> {
     env_logger::init();
-    let cli = flags::Cli::parse();
-    cli.validate()?;
-    setup_daemon(&cli)?;
+    let mut cli = flags::Cli::parse();
+    setup_daemon(&mut cli)?;
     Ok(())
 }
 
 /// Set up to start daemon
-fn setup_daemon(config: &flags::Cli) -> anyhow::Result<()> {
-    let mut listeners: Vec<Box<dyn Handler>> = vec![];
+fn setup_daemon(config: &mut flags::Cli) -> anyhow::Result<()> {
+    let mut evdev_listeners = vec![];
+    let mut swbc_listener = None;
+    let mut hwbc_listener = None;
     let mut state = State::new();
 
-    if let Some(brightness) = config.brightness {
-        state.requested_brightness = brightness;
-    } else {
-        state.requested_brightness = 1;
+    state.on_brightness = config.brightness.unwrap_or(1);
+
+    let devices_to_monitor = utils::normalize_devices(config.monitor_input.clone(), utils::get_default_devices()?)?;
+    for e in devices_to_monitor {
+        evdev_listeners.push(Some(EvDevListener::new(&e)?));
     }
 
-    for e in &config.monitor_input {
-        if let Some(timeout) = config.wait {
-            wait_for_file(e.as_path(), Duration::from_millis(timeout.into()))?;
+    if config.led_base_dir.is_none() {
+        let leds_dir = Path::new("/sys/class/leds").to_path_buf();
+        let mut kbd_led_dir = None;
+
+        for entry in leds_dir.read_dir()? {
+            let file_name = entry?.file_name().to_string_lossy().into_owned();
+            if file_name.ends_with("kbd_backlight") {
+                if kbd_led_dir.is_some() {
+                    anyhow::bail!("Multiple kbd_backlights found. Please specify one explicitly.");
+                } else {
+                    kbd_led_dir = Some(file_name);
+                }
+            }
         }
-        listeners.push(Box::new(EvDevListener::new(e)?));
+        if kbd_led_dir.is_none() {
+            anyhow::bail!("No kdb_backlight found. Please specify one explicitly.");
+        }
+
+        config.led_base_dir = Some(leds_dir.join(kbd_led_dir.unwrap()));
     }
     if let Some(timeout) = config.wait {
-        wait_for_file(config.led.as_path(), Duration::from_millis(timeout.into()))?;
+        wait_for_file(config.led_base_dir.as_ref().unwrap().as_path(), Duration::from_millis(timeout.into()))?;
     }
     let led = Rc::new(RefCell::new(
-        Led::new(config.led.clone()).context("Failed to create LED")?,
+        Led::new(config.led_base_dir.as_ref().unwrap().clone()).context("Failed to create LED")?,
     ));
+
     if !config.no_adaptive_brightness {
-        if let Some(hw_path) = led.borrow().hw_monitor_path() {
-            listeners.push(Box::new(HwChangeListener::new(hw_path.into(), led.clone())));
-            listeners.push(Box::new(SwChangeListener::new(
-                led.borrow().sw_monitor_path(),
-                led.clone(),
-            )));
+        swbc_listener = Some(SwBrightnessChangeListener { led: led.clone() });
+        if led.borrow().hw_monitor_path().is_some() {
+            hwbc_listener = Some(HwBrightnessChangeListener { led: led.clone() });
         }
     }
 
-    monitor(listeners, state, led, config)?;
+    monitor(evdev_listeners, swbc_listener, hwbc_listener, state, led, config)?;
 
     unreachable!();
 }

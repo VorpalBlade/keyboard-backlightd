@@ -55,7 +55,7 @@ fn policy(state: &mut State, settings: &Cli) -> SmallVec<[PolicyAction; 2]> {
             state.keep = None;
         } else {
             return smallvec![
-                PolicyAction::SetLed(state.requested_brightness),
+                PolicyAction::SetLed(state.on_brightness),
                 PolicyAction::Sleep(Some(keep.until - now))
             ];
         }
@@ -66,7 +66,7 @@ fn policy(state: &mut State, settings: &Cli) -> SmallVec<[PolicyAction; 2]> {
         smallvec![PolicyAction::SetLed(0), PolicyAction::Sleep(None)]
     } else {
         smallvec![
-            PolicyAction::SetLed(state.requested_brightness),
+            PolicyAction::SetLed(state.on_brightness),
             PolicyAction::Sleep(Some(led_timeout))
         ]
     }

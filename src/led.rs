@@ -129,7 +129,7 @@ impl Led {
         if adaptive_brightness && self.hw_monitor_path.is_none() && brightness == 0 {
             let old_brightness = read_int(&mut self.brightness_file)?;
             if old_brightness > 0 {
-                state.requested_brightness = old_brightness;
+                state.on_brightness = old_brightness;
             }
         }
         self.brightness_file.rewind()?;
