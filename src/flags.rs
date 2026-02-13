@@ -10,8 +10,8 @@ pub struct Cli {
     #[clap(short = 'i', long)]
     pub monitor_input: Vec<PathBuf>,
     /// Path for LED to control.
-    #[clap(short, long)]
-    pub led: PathBuf,
+    #[clap(short, long = "led")]
+    pub led_base_dir: Option<PathBuf>,
     /// Timeout in milliseconds before backlight is turned off.
     #[clap(short, long)]
     pub timeout: u32,
@@ -29,15 +29,4 @@ pub struct Cli {
     /// This can help with late loaded kernel modules.
     #[clap(short, long)]
     pub wait: Option<u32>,
-}
-
-impl Cli {
-    pub fn validate(&self) -> anyhow::Result<()> {
-        if self.monitor_input.is_empty() {
-            return Err(anyhow::anyhow!(
-                "At least one monitored input (`-i`) is required",
-            ));
-        }
-        Ok(())
-    }
 }

@@ -49,3 +49,4 @@ smallvec = { version = "1.15.1", features = [
     "const_new",
     "union",
 ] }
+udev = "0.9.3"
