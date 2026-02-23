@@ -30,8 +30,8 @@ targets = [
 ]
 
 [dependencies]
-anyhow = { version = "1.0.101", features = ["backtrace"] }
-clap = { version = "4.5.58", features = [
+anyhow = { version = "1.0.102", features = ["backtrace"] }
+clap = { version = "4.5.60", features = [
     "derive",
     "error-context",
     "help",
