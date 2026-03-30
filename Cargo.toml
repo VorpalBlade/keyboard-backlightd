@@ -31,13 +31,13 @@ targets = [
 
 [dependencies]
 anyhow = { version = "1.0.102", features = ["backtrace"] }
-clap = { version = "4.5.60", features = [
+clap = { version = "4.6.0", features = [
     "derive",
     "error-context",
     "help",
     "std",
 ], default-features = false }
-env_logger = { version = "0.11.9", default-features = false }
+env_logger = { version = "0.11.10", default-features = false }
 evdev-rs = "0.6.3"
 log = "0.4.29"
 nix = { version = "0.31.2", default-features = false, features = [
